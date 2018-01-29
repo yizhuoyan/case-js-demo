@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>离线web轻应用-安全期计算</title>
+<script>
+	//工具方法和常量
+	var MONTH_CHARS = "一二三四五六七八九十".split("");
+	MONTH_CHARS.push("十一", "十二");
+	var WEEK_CHARS = "一二三四五六日".split("");
+	var NOW = new Date();
+	
+	/**
+	 *获取指定年月最大天数
+	 *@param {int} year 年
+	 *@param {int} month 月.从1开始 
+	 *@return {int} 月最大天数
+	 */
+	var getMaxDaysOfMonth = function(year, month) {
+		// 计算各月天数
+		switch (month) {
+		case 4:
+		case 6:
+		case 9:
+		case 11:
+			return 30;
+		case 2:
+			// 判断是否是闰年
+			var isLeapYear = (year % 4 === 0 && year % 100 !== 0)
+					|| year % 400 === 0;
+			return isLeapYear ? 29 : 28;
+		}
+		return 31;
+	}
+	/**
+	* 计算两个日期间隔天数
+	*@param {date} beginDate 开始日期
+	*@param {date} endDate 结束日期
+	*@return {int} 间隔天数
+	*/
+	var countIntervalDays=function(beginDate,endDate){
+		var intervalDays=Math.abs(beginDate.getTime()-endDate.getTime());
+		return Math.round(intervalDays/(24*60*60*1000));
+	}
+	/**
+	*返回日期加上天数后的新日期
+	*@param {date} date 操作日期
+	*@param {int} days 操作天数 ,如果为负数,则进行减法
+	*@return {date} 返回计算后天数
+	*/
+	var dateAddDays=function(date,days){
+		var newDate=new Date(date.getTime());
+		newDate.setDate(newDate.getDate()+days);
+		return newDate;
+	}
+	/**
+	 *根据月份创建表格日历,返回表格EL对象,其中dateCell属性保存所有使用到的单元格
+	 *@param {int} month 月份
+	 *@return {htmltableElement} 创建的table对象
+	 */
+	var createMonthCalendarTable = function(month) {
+		var table = document.createElement("table");
+		//标题行
+		var caption = table.createCaption();
+		caption.innerHTML = MONTH_CHARS[month - 1] + " 月";
+		//星期行
+		var thead = table.createTHead();
+		var row, cell;
+		row = thead.insertRow(-1);
+		for (var i = 0; i < 7; i++) {
+			cell = row.insertCell(-1);
+			cell.innerHTML = WEEK_CHARS[i];
+		}
+		//获取当前月1号是星期几
+		var currentMonthDate = new Date(NOW.getFullYear(),month-1,1);
+		//星期天=7
+		var week = currentMonthDate.getDay() || 7;
+		//获取这个月最大天数
+		var maxDays = getMaxDaysOfMonth(NOW.getFullYear(), month);
+
+		//创建tbody,
+		var tbody = table.createTBody();
+		//计算所需最大行数
+		var maxRow =Math.ceil((maxDays+week-1)/7);
+		
+		var dateCell=[];
+		//创建日期单元格
+		for (var rowNo = 0,cellNo; rowNo < maxRow; rowNo++) {
+			row = tbody.insertRow(-1);
+			for (var weekNo = 1; weekNo <=7; weekNo++) {
+				cell = row.insertCell(-1);
+				cellNo=rowNo*7+weekNo-week+1;
+				if(cellNo>=1&&cellNo<=maxDays){
+					cell.innerHTML =String(cellNo);
+					dateCell.push(cell);
+				}
+			}
+		}
+		//保存日历单元格
+		table.dateCell=dateCell;
+		return table;
+	}
+</script>
+<style type="text/css">
+table {
+	border: 1px solid black;
+	border-collapse: collapse;
+	display: inline-table;
+	margin-left: 1em;
+	height: 200px;
+	width: 200px;
+}
+
+table caption {
+	font-weight: bold;
+}
+
+td {
+	border: 1px solid black;
+	text-align: center;
+}
+
+thead td {
+	background-color: #93c538;
+	font-weight: bold;
+}
+
+button {
+	background-color: #2D97DE;
+	border: 1px solid #2381C0;
+	cursor: pointer;
+	color: white;
+	width: 100px;
+	height: 3em;
+}
+
+button:HOVER {
+	background-color: #2088d0;
+}
+
+.appBox {
+	padding: 1em;
+	width: 800px;
+	background-color: #ffffcc;
+}
+
+.appBox legend {
+	font-size: 120%;
+	font-weight: bold;
+}
+
+.input-introduction {
+	
+	font-size: 90%;
+}
+
+.input-introduction blockquote {
+	text-indent: 2em;
+	margin: 0;
+}
+
+.box-input {
+	width: 600px;
+	margin: auto;
+}
+
+.box-output {
+	text-align: center;
+	margin-top: 1em;
+}
+
+input.text {
+	background-color: #F9F9F9;
+	width: 4em;
+	text-align: center;
+	height: 2em;
+	border: 1px solid #DEDEfE;
+}
+.row-mbegin{
+	margin: 1em 0;
+}
+.row-mbegin select {
+	background-color: #F9F9F9;
+	width: 4.3em;
+	height: 2.3em;
+	text-indent: 1em;
+	border: 1px solid #DEDEfE;
+}
+
+.row-mbegin button {
+	margin-left: 2em;
+}
+
+.colorTip {
+	margin-top: 2em;
+}
+
+.colorTip span {
+	font-size: 80%;
+	padding: 1em 2em;
+	margin-left: 2em;
+}
+
+.form-key {
+	display: inline-block;
+	text-align: right;
+	width: 150px;
+}
+.message{
+	font-weight: bold;
+	color: red;
+	font-size: 90%;
+	text-align: center;
+}
+.ovulationPeriod{
+	background-color: red;
+	font-weight: bold;
+}
+.safePeriod{
+	background-color: green;
+	font-style: italic;
+	color: white;
+}
+.mensesPeriod{
+	background-color: yellow;
+}
+</style>
+
+</head>
+<body onload="pageOnloadHandler()" >
+	<div class="appBox">
+		<fieldset>
+			<legend>安全期计算</legend>
+			<div class="input-introduction">
+				<blockquote>
+					正常育龄女性每个月来1次月经，从本次月经来潮开始到下次月经来潮第1天，称为1个月经周期,一般来说是28～30天。
+					如从避孕方面考虑，可以将女性的每个月经周期分为月经期、排卵期和安全期。</blockquote>
+				<p>
+					注：<strong>各种原因都可能引起的安全期改变，所以安全期计算只能作为一个参考，而不能作为一种有效的避孕手段。
+						据国外有关专家统计，采用安全期避孕的失败率高达<mark>14.4%～47%。</mark>
+					</strong>
+				</p>
+			</div>
+			<div class="box-input">
+				<div id="messageEL" class="message">
+					&nbsp;
+				</div>
+				<div class="row-mperiod">
+					<lable class="form-key">月经周期:</lable>
+					<lable>
+					<input id="mperiodEL" class="text" type="number" maxlength="2" value="28">
+					天</lable>
+					<label class="form-key">
+						平均行经期:
+						</label>
+					<label>
+						<input id="menseDayEL"  class="text" type="number" maxlength="1" value="5"> 天 
+					</label>
+				</div>
+				<div class="row-mbegin">
+					<label class="form-key">上次月经开始日期:</label> <label> <select
+						id="monthSelect" onchange="generaterDaysSelect(this)">
+							
+					</select> 月
+					</label> <label> <select id="daysSelect">
+					</select> 日
+					</label>
+					<script>
+						var generaterDaysSelect = function(monthSelect) {
+							var month = monthSelect.options[monthSelect.selectedIndex].value;
+							//获取这个月最大天数
+							var maxDays = getMaxDaysOfMonth(new Date()
+									.getFullYear(), Number(month));
+							var daysSelect = document
+									.getElementById("daysSelect");
+							daysSelect.innerHTML = "";
+							var option;
+							for (var i = 1; i <=maxDays; ++i) {
+								option = document.createElement("option");
+								option.appendChild(document
+										.createTextNode(String(i)));
+								option.value = String(i);
+								daysSelect.appendChild(option);
+
+							}
+							return daysSelect;
+						}
+
+						
+					</script>
+					<button onclick="countSafePeriod(this)">计算</button>
+				</div>
+
+			</div>
+
+			<div class="box-output">
+				<div id="output-calender">
+					<!-- 这里显示日历 -->
+				</div>
+				<aside>
+					<p class="colorTip">
+						<span class="safePeriod">安全期</span> 
+						<span class="ovulationPeriod">排卵期</span>
+						<span class="mensesPeriod">月经期</span>
+					</p>
+				</aside>
+			</div>
+		</fieldset>
+	</div>
+	<script>
+		/**
+		*核心方法,点击"计算"按钮执行
+		*/
+		var countSafePeriod = function() {
+			//异常信息显示EL
+			var messageEL = document.getElementById("messageEL");
+			try {
+				//1 获取周期值
+				var mperiodEL = document.getElementById("mperiodEL");
+				if (!(/^\d\d$/.test(mperiodEL.value))) {
+					throw new Error("月经周期必须为数字");
+				}
+				var mperiod=parseInt(mperiodEL.value,10);
+				//2 获取行经期
+				var menseDayEL=document.getElementById("menseDayEL");
+				if(/^\D$/.test(menseDayEL.value)){
+					throw new Error("平均行经期必须为数字");
+				}
+				var mendseDay=parseInt(menseDayEL.value,10);
+				//3 获取上次月经日期
+				var monthSelect=document.getElementById("monthSelect");
+				var daysSelect=document.getElementById("daysSelect");
+				var mStartMonth=Number(monthSelect.options[monthSelect.selectedIndex].value);
+				var mStartDay=Number(daysSelect.options[daysSelect.selectedIndex].value);
+				var lastMStartDate=new Date(NOW.getFullYear(),mStartMonth-1,mStartDay);
+				
+				
+				//4 创建表格日历
+				//4.1获取日历容器并清空
+				var calendarOutputBox=document.getElementById("output-calender");
+				calendarOutputBox.innerHTML="";
+				//4.2保存所有日期单元格,用于后面标注各个日子
+				var allDateCells=[];
+				//4.3执行整体核心计算,包括月经期,安全期,排卵期
+				var periods=countAllPeriods(lastMStartDate,mperiod,mendseDay);
+				//4.4 获取一个月经周期开始月和结束月
+				var mensesMonthStart=periods.menses.start.getMonth()+1;
+				var mensesMonthEnd=periods.secondSafe.end.getMonth()+1;
+				//4.5 根据月生成日历
+				for(var mMonth=mensesMonthStart;mMonth<=mensesMonthEnd;mMonth++){
+					var calendarTable=createMonthCalendarTable(mMonth);
+					calendarOutputBox.appendChild(calendarTable);
+					//4.6 保存所有日期单元格
+					for(var i=0,max=calendarTable.dateCell.length;i<max;i++){
+						allDateCells.push(calendarTable.dateCell[i]);
+					}
+				}
+				//5 标注各个日子
+				//5.1 计算月经期并标注
+				var mensesPeriodDays=countIntervalDays(periods.menses.start,periods.menses.end);
+				var begin=periods.menses.start.getDate()-1;
+				while(mensesPeriodDays){
+					allDateCells[begin++].className="mensesPeriod";
+					mensesPeriodDays--;
+				}
+				//5.2 计算前安全期并标注
+				var firstSafePeriodDays=countIntervalDays(periods.firstSafe.start,periods.firstSafe.end);
+				
+				while(firstSafePeriodDays){
+					allDateCells[begin++].className="safePeriod";
+					firstSafePeriodDays--;
+				}
+				//5.3 计算排卵期并标注
+				var ovulationPeriodDays=countIntervalDays(periods.ovulation.start,periods.ovulation.end);
+				while(ovulationPeriodDays){
+					allDateCells[begin++].className="ovulationPeriod";
+					ovulationPeriodDays--;
+				}
+				//5.4 计算后安全期并标注
+				var secondSafePeriodDays=countIntervalDays(periods.secondSafe.start,periods.secondSafe.end);
+				while(secondSafePeriodDays){
+					allDateCells[begin++].className="safePeriod";
+					secondSafePeriodDays--;
+				}
+			} catch (e) {
+				messageEL.innerHTML = e.message;
+			}
+
+		}
+		/**
+		*计算排卵期和安全期
+		*@param {date} lastMStartDate上次月经期
+		*@param {int} mPeriod 月经周期
+		*@param {int} mendseDay 行经天数
+		*@return {object} 对象结构如下： 
+		*{
+			menses:{start,end},
+		*   firstSafe:{start,end},
+			secondSafe:{start,end},
+		*  	ovulation:{start,end}
+		*}
+		*/
+		var countAllPeriods=function(lastMStartDate,mPeriod,mendseDay){
+			
+			//1计算下次月经日=上次月经日+周期
+			var nextMStartDate=dateAddDays(lastMStartDate,mPeriod);
+			//2计算排卵日=下次月经日-14天
+			var ovulationDay=dateAddDays(nextMStartDate,-14);
+			//3计算排卵开始日=排卵日前5
+			var ovulationStartDate=dateAddDays(ovulationDay,-5); 
+			//4排卵期结束日=排卵日后4,多加1天,前包含,后不包含
+			var ovulationEndDate=dateAddDays(ovulationDay,5); 
+			//5行经结束日
+			var mensesEndDate=dateAddDays(lastMStartDate,mendseDay);
+			//6 组装返回结果
+			return {
+				menses:{
+					start:lastMStartDate,
+					end:mensesEndDate},
+				firstSafe:{
+					start:mensesEndDate,
+					end:ovulationStartDate},
+				ovulation:{
+					start:ovulationStartDate,
+					end:ovulationEndDate},	
+				secondSafe:{
+					start:ovulationEndDate,
+					end:nextMStartDate}
+			};
+		}
+		
+		/**
+		*页面加载完毕执行方法,用于设置界面元素初始状态
+		*/
+		function pageOnloadHandler(){
+			//1 上次月经日期默认为当前时间
+			var monthSelect = document.getElementById("monthSelect");
+			//1.1生成12个月份
+			var option=0;
+			for(var i=1;i<=12;i++){
+				option = document.createElement("option");
+				option.appendChild(document
+						.createTextNode(String(i)));
+				option.value = String(i);
+				monthSelect.appendChild(option);
+			}
+			//1.2选择当前月
+			monthSelect.selectedIndex = NOW.getMonth();
+			//1.3 生成当前月日期和选择当前日
+			var daysSelect = generaterDaysSelect(monthSelect);
+			daysSelect.selectedIndex = NOW.getDate() - 1;
+			
+			//2 日历区默认显示当前月和下月
+			var currentMonthTable=createMonthCalendarTable(NOW.getMonth()+1);
+			var nextMonthTable=createMonthCalendarTable(NOW.getMonth()+2);
+			var calendarOutputBox=document.getElementById("output-calender");
+			calendarOutputBox.appendChild(currentMonthTable);
+			calendarOutputBox.appendChild(nextMonthTable);
+			
+		};
+	</script>
+</body>
+</html>
+

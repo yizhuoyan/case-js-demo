@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="Author" content="YIZHUOYAN">
+  <title>球任意运动</title>
+  <style>
+  	html{
+		height:100%;	
+	}
+	body{
+		margin:0;
+		height:100%;
+		overflow:hidden;
+	}
+	#ball{
+		background:red;
+		width:50px;
+		height:50px;
+		position:absolute;
+		left:0%;
+		top:0;
+		border-radius:25px;
+
+	}
+  </style>
+ </head>
+ <body>
+	<div id="ball">
+	</div>
+	<script>
+		var ball=document.getElementById("ball");
+		var bodyH=document.body.offsetHeight;
+		var bodyW=document.body.offsetWidth;
+		var ballH=ball.offsetHeight;
+		var ballW=ball.offsetWidth;
+		var maxTop=bodyH-ballH;
+		var maxLeft=bodyW-ballW;
+		//帧
+		var fps=1000/30;
+		//空气阻力	
+		var airFactor=0.4;
+		//碰撞能耗系数
+		var collisionFactor=0.15;
+		//重力系数
+		var g=1.5;
+		//垂直反弹速度
+		var againstSpeed=null;
+		//水平速度
+		var hspeed=Math.random()*100+10;
+		//加速度
+		var a=1;
+		//当前方向
+		var updown="down";
+		var leftRight="left";
+		
+		var run=function(){
+			var begin=new Date().getTime();
+			if("down"===updown){
+				if(ball.offsetTop+a>=maxTop){
+					ball.style.top=maxTop+"px";
+					againstSpeed=a*(1-collisionFactor);
+					a=1;
+					updown="up";
+				}else{
+					ball.style.top=ball.offsetTop+a+"px";
+				}
+				
+			}else{
+				var s=againstSpeed-a;
+				if(s<=0){
+					a=1;
+					updown="down";
+					if(ball.offsetTop+a>=maxTop){
+						if(hspeed<0){
+							//return;
+						}
+					}
+				}else{	
+					ball.style.top=ball.offsetTop-s+"px";
+				}
+			}
+			a+=g*2;
+			if(hspeed>0){
+				if("right"===leftRight){
+					if(ball.offsetLeft+hspeed>=maxLeft){
+						ball.style.left=maxLeft+"px";
+						leftRight="left";
+					}else{
+						ball.style.left=ball.offsetLeft+hspeed+"px";
+					}
+				}else{
+					if(ball.offsetLeft-hspeed<=0){
+						leftRight="right";	
+					}else{
+						ball.style.left=ball.offsetLeft-hspeed+"px";
+					}
+				}
+				hspeed-=airFactor;
+			}
+
+			var pass=new Date().getTime()-begin;
+			if(pass<fps){
+				setTimeout(run,fps-pass);
+			}else{
+				setTimeout(run,0);
+			}
+			
+		};
+		//添加点击事件
+		var addListener=function(){
+			if(ball.addEventListener){
+				ball.addEventListener("click",handleClickEvent);
+			}else{
+				ball.attachEvent("onclick",handleClickEvent);
+			}
+		}
+		var handleClickEvent=function(evt){
+			evt=evt||window.evt;
+			var ball=evt.target||evt.srcElement;
+			//
+			againstSpeed=Math.random()*100+10;
+			hspeed=Math.random()*100+10;
+			//当前方向
+			updown="up";
+		}
+		addListener();
+		run();
+
+	</script>
+ </body>
+</html>

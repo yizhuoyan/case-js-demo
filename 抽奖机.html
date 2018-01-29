@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>离线web轻应用-抽奖机</title>
+		<style type="text/css">
+			html, body, h1, h4, p, ul, ol, dl, dt, dd, li {
+				margin: 0;
+				padding: 0;
+				font-size: 100%;
+			}
+			
+			button {
+				background-color: #2D97DE;
+				border: 1px solid #2381C0;
+				cursor: pointer;
+				color: white;
+				margin: 0;
+			}
+			
+			button:HOVER {
+				background-color: #2088d0;
+			}
+			
+			input[type=text], input.text {
+				background-color: #F9F9F9;
+				height: 2em;
+				line-height: 2em;
+				border: 1px solid #DEDEfE;
+			}
+			
+			.readonly, input[readonly] {
+				color: gray;
+			}
+			
+			.appBox {
+				position: relative;
+				min-width: 700px;
+				padding-right: 300px;
+				background-color: #ffffcc;
+				border: 1px solid black;
+				margin: 1em;
+			}
+			
+			.lottery-run-box {
+				text-align: center;
+				border-bottom: 1px solid black;
+				height: 5em;
+				line-height: 5em;
+			}
+			
+			.lottery-action-box {
+				text-align: center;
+				border-bottom: 1px solid black;
+				padding: 1em 0;
+			}
+			
+			.lottery-config-box {
+				padding: 1em;
+			}
+			
+			.lottery-desc-box {
+				border-top: 1px solid black;
+				padding: 0 1em;
+			}
+			
+			.lottery-result-box {
+				position: absolute;
+				width: 300px;
+				right: 0;
+				top: 0;
+				box-sizing: border-box;
+				padding: 1em;
+				background-color: yellow;
+				height: 100%;
+				border-left: 1px solid black;
+			}
+			
+			/**-------------整体布局结束,细节布局开始--------------------------*/
+			
+			/**--------------lottering-box开始-----------------*/
+			.lottery-run-box em {
+				
+			}
+			
+			.lottering-box {
+				display: none;
+			}
+			
+			.lottering-box dt {
+				display: inline-block;
+			}
+			
+			.lottering-box dd {
+				display: inline-block;
+				overflow: hidden;
+				vertical-align: middle;
+				line-height: normal;
+				height: 4em;
+				padding: 0 1em;
+				font-size: 80%;
+				border-left: 1px solid #2D97DE;
+				border-right: 1px solid #2D97DE;
+			}
+			
+			.award-running-box {
+				list-style: none;
+				display: none;
+			}
+			
+			.lottering-run-result {
+				line-height: 4em;
+			}
+			
+			/**--------------lottery-action-box开始-----------------*/
+			.lotteryBtn {
+				width: 300px;
+				height: 3em;
+			}
+			/**--------------lottery-config-box开始-----------------*/
+			.lottery-config-item {
+				margin-top: 1em;
+			}
+			
+			.lottery-config-userAward {
+				list-style: none;
+				margin-left: 175px;
+				font-size: 90%;
+			}
+			
+			.lottery-config-item dt {
+				display: inline-block;
+				width: 200px;
+				text-align: right;
+			}
+			
+			.lottery-config-item dd {
+				display: inline-block;
+				font-size: 90%;
+			}
+			
+			input.lottery-person {
+				width: 350px;
+				text-indent: 4px;
+			}
+			
+			input.lottery-times {
+				width: 4em;
+				text-align: center;
+			}
+			
+			input.lottery-mustWin {
+				vertical-align: middle;
+			}
+			
+			input.lottery-totalOdds {
+				width: 200px;
+				text-indent: 4px;
+			}
+			
+			input.lottery-averageOdds {
+				vertical-align: middle;
+			}
+			
+			.lottery-award-box {
+				margin-bottom: 1em;
+			}
+			
+			input.award-name {
+				width: 200px;
+				text-indent: 4px;
+			}
+			
+			input.award-odds {
+				width: 4em;
+				text-align: center;
+			}
+			
+			input.award-quantity {
+				width: 3em;
+				text-align: center;
+			}
+			
+			button.minus, button.plus {
+				width: 2em;
+				height: 2em;
+			}
+			
+			/**------------------抽奖说明区----------------------*/
+			.lottery-desc-box h4 {
+				
+			}
+			
+			.lottery-desc-box p {
+				margin: 0;
+				text-indent: 2em;
+			}
+			
+			.lottery-desc-box dl {
+				margin-left: 2em;
+			}
+			
+			.lottery-desc-box dt {
+				font-weight: bold;
+				font-size: 80%;
+			}
+			
+			.lottery-desc-box dd {
+				font-size: 80%;
+				margin-left: 2em;
+			}
+			/**------------------抽奖结果区------------------------------*/
+			.lottery-result-box h1 {
+				text-align: center;
+				border-bottom: 1px dotted black;
+				font-size: 160%;
+			}
+			
+			dl.lottery-result-item ol {
+				list-style-position: inside;
+				font-size: 90%;
+				margin-left: 1em;
+			}
+		</style>
+		<script>
+			/**
+			 *工具方法
+			 */
+			var $ = (function() {
+				var $ = function(id) {
+					return document.getElementById(id);
+				};
+				$.formatDate = function(date) {
+					var hour = date.getHours();
+					hour = hour > 10 ? hour : "0" + hour;
+					var minute = date.getMinutes();
+					minute = minute > 10 ? minute : "0" + minute;
+					var second = date.getSeconds();
+					second = second > 10 ? second : "0" + second;
+					return hour + ":" + minute + ":" + second;
+		
+				};
+				$.trim = function(str) {
+					if (str === undefined || str === null) {
+						return "";
+					}
+					str = String(str);
+					str = str.replace(/^\s+/g, "").replace(/\s+$/g, "");
+					return str;
+				}
+				$.bind = function(target, type, handler, handlerArgsArray) {
+					if (handlerArgsArray === undefined) {
+						handlerArgsArray = [];
+					}
+					//不是数组,转变为数组
+					if (Object.prototype.toString.call(handlerArgsArray) !== "[object Array]") {
+						handlerArgsArray = [ handlerArgsArray ];
+					}
+					if (target.addEventListener) {
+						target.addEventListener(type, function(evt) {
+							handler.apply(target, handlerArgsArray.concat(evt));
+						}, false);
+					} else {
+						target.attachEvent("on" + type, function(evt) {
+							handler.apply(target, handlerArgsArray.concat(evt
+									|| window.event));
+						});
+					}
+				}
+				$.tlwh = (function() {
+					var l = function(e) {
+						return e.offsetParent ? e.offsetLeft + l(e.offsetParent)
+								: e.offsetLeft;
+					};
+					var t = function(e) {
+						return e.offsetParent ? e.offsetTop + t(e.offsetParent)
+								: e.offsetTop;
+					};
+					var cssW = function(e) {
+						if (e.style.width)
+							return e.style.width;
+						if (e.currentStyle)
+							return e.currentStyle.width;
+						if (document.defaultView
+								&& document.defaultView.getComputedStyle)
+							return document.defaultView.getComputedStyle(e, "")
+									.getPropertyValue("width");
+					};
+					var cssH = function(e) {
+						if (e.style.height)
+							return e.style.height;
+						if (e.currentStyle)
+							return e.currentStyle.height;
+						if (document.defaultView
+								&& document.defaultView.getComputedStyle)
+							return document.defaultView.getComputedStyle(e, "")
+									.getPropertyValue("height");
+					};
+					var w = function(e) {
+						if (e.style.display != "none") {
+							return e.offsetWidth || -cssW(e);
+						}
+						var oldCss = {
+							display : e.style.display,
+							visibility : e.style.visibility,
+							position : e.stye.position
+						};
+						e.style.display = "";
+						e.style.visibility = "hidden";
+						e.style.position = "absolute";
+						var w = e.clientWidth || -cssW(e);
+						e.style.display = oldCss.display;
+						e.style.visibility = oldCss.visibility;
+						e.style.position = oldCss.position;
+						return w;
+					};
+					var h = function(e) {
+						if (e.style.display != "none") {
+							return e.offsetHeight || -cssH(e);
+						}
+						var oldCss = {
+							display : e.style.display,
+							visibility : e.style.visibility,
+							position : e.stye.position
+						};
+						e.style.display = "";
+						e.style.visibility = "hidden";
+						e.style.position = "absolute";
+						var h = e.clientHeight || -cssH(e);
+						e.style.display = oldCss.display;
+						e.style.visibility = oldCss.visibility;
+						e.style.position = oldCss.position;
+						return h;
+					};
+					return function(e) {
+						return {
+							t : t(e),
+							l : l(e),
+							w : w(e),
+							h : h(e)
+						};
+					}
+				}());
+		
+				return $;
+			}());
+		</script>
+	</head>
+
+	<body>
+		<div class="appBox">
+			<div class="lottery-run-box">
+				<em id="lotteryTipEL">请先进行抽奖配置,点击下面抽奖按钮开始抽奖</em>
+				<dl class="lottering-box" id="lotteringBox">
+					<dt id="lotteringMessageEL">
+
+					<!--  张三正在进行第1次抽奖    -->
+
+				</dt>
+					<dd>
+						<ol class="award-running-box" id="awardRunningBox">
+							<!-- 奖项滚动区域 -->
+						</ol>
+						<label class="lottering-run-result" id="lotteringRunResultEL">AA</label>
+					</dd>
+				</dl>
+			</div>
+			<div class="lottery-action-box">
+				<button id="lottryBtn" class="lotteryBtn">配置完毕,开始抽奖</button>
+			</div>
+			<div class="lottery-config-box" id="lotteryConfigBox">
+				<dl class="lottery-config-item">
+					<dt>抽奖人名称:</dt>
+					<dd>
+						<input id="lotteryPersonEL" class="text lottery-person">
+					</dd>
+				</dl>
+
+				<dl class="lottery-config-item">
+					<dt>抽奖次数:</dt>
+					<dd>
+						<input class="text lottery-times" id="lotteryTimesEL" type="number">
+						<label>
+							<input class="lottery-mustWin" id="lotteryMustWinEL" type="checkbox">每次必中奖
+						</label>
+					</dd>
+				</dl>
+
+				<dl class="lottery-config-item">
+					<dt>总中奖几率:</dt>
+					<dd>
+						<input class="text lottery-totalOdds" id="lotteryTotalOddsEL">
+						<label>
+							<input class="lottery-averageOdds" id="lotteryAverageOddsEL" type="checkbox" checked>各奖项评价分配
+						</label>
+					</dd>
+				</dl>
+
+				<dl class="lottery-config-item">
+					<dt style="vertical-align: top;">
+
+					奖品数量中奖几率: <br> <small>(数量为负数表示无穷)</small>
+
+				</dt>
+					<dd>
+						<div id="noWinAwardBox" class="lottery-award-box">
+							<input class="text award-name" readonly> ×
+							<input class="text award-quantity" readonly> :
+							<input class="text award-odds" id="noWinOddsEL" readonly>
+						</div>
+						<div id="defaultAwardBox" class="lottery-award-box">
+							<input class="text award-name" placeholder="请输入名称"> ×
+							<input class="text award-quantity" type="number"> :
+							<input class="text award-odds">
+							<button class="plus">+</button>
+						</div>
+					</dd>
+				</dl>
+				<ul class="lottery-config-userAward" id="userAwardBox">
+
+				</ul>
+			</div>
+
+			<div class="lottery-desc-box">
+				<h4>说明:</h4>
+				<p>本应用为模拟抽奖机,首先对抽奖参数进行配置,然后点击抽奖按钮开始抽奖,一些名词解释如下：
+					<dl>
+						<dt>抽奖人名称</dt>
+						<dd>抽奖主体,可以组织或个人名称,仅用于显示抽奖结果,不影响中奖几率</dd>
+						<dt>抽奖次数</dt>
+						<dd>抽奖主体在一次抽奖过程中可以进行抽奖次数,默认1,不影响中奖几率</dd>
+						<dt>每次必中奖</dt>
+						<dd>表示每次抽奖都会中奖,其实即改变未中奖奖项中奖几率为0</dd>
+						<dt>总中奖几率</dt>
+						<dd>
+							一般等于各个奖项中奖几率之和,如果分配给各个奖项中奖几率之和大于此值,则改变此值. 如果此值大于所有已分配中奖几率,则剩余几率分配给未中奖奖项.
+							<br> 考虑到多次抽奖过程中,奖项数量会减少,实际中奖总几率一般小于此值.
+						</dd>
+						<dt>各奖项评价分配</dt>
+						<dd>使每次新增/减少奖项时,自动分配各个奖项中奖几率为评价中奖几率,即所有奖项中奖比重一样</dd>
+						<dt>奖项数量</dt>
+						<dd>奖项的数量,如果为负数,则表示无穷个奖项,如果为0,则表示此奖项不参与下次抽奖</dd>
+						<dt>中奖几率</dt>
+						<dd>即每次抽奖过程中,各个奖项的中奖比重,几率越大,中奖机会就越大</dd>
+					</dl>
+					</p>
+			</div>
+			<!-- 绝对定位 -->
+			<div id="lotteryResultBox" class="lottery-result-box">
+				<h1>中奖结果</h1>
+				<!-- 
+            <dl  class="lottery-result-item">
+                <dt>第一组</dt>
+                <dd>
+                    <ol>
+                        <li>奖品A</li>
+                        <li>奖品B</li>
+                        <li>奖品C</li>
+                    </ol>
+                </dd>
+            </dl>
+             -->
+			</div>
+		</div>
+		<script>
+			/**
+			 *UI视图
+			 */
+			var LotteryUI = (function() {
+				//整个抽奖UI构造器
+				var Class = function() {
+					//抽奖运行区
+					this.runUI = new RunUI(this);
+					//配置区对象
+					this.configUI = new ConfigUI(this);
+					//抽奖按钮
+					this.lotteryButton = $("lottryBtn");
+					//结果区
+					this.resultUI = new ResultUI();
+	
+				};
+				//绑定模型
+				Class.prototype.bindModel = function(model) {
+					//抽奖按钮绑定事件
+					$.bind(this.lotteryButton, "click",
+							LotteryManager.lotteryBtnClickHandler);
+					this.configUI.bindModel(model);
+				};
+				//根据模型更新视图
+				Class.prototype.updateView = function(model) {
+					this.configUI.updateView(model);
+				};
+	
+				//添加一个奖项视图
+				Class.prototype.createAwardUI = function(model) {
+					var awardContainer = document.createElement("li");
+					var html = [];
+					html.push('<div class="lottery-award-box">');
+					html.push('<button class="minus">-</button> ');
+					html
+							.push('<input  class="text award-name" placeholder="请输入名称" > × ');
+					html
+							.push('<input  class="text award-quantity" type="number"> : ');
+					html.push('<input class="text award-odds">');
+					html.push(' <button class="plus">+</button>');
+					html.push('</div>');
+					awardContainer.innerHTML = html.join("");
+					//添加到界面中
+					this.configUI.userAwardBox.appendChild(awardContainer);
+					//创建奖项ui对象
+					var awardUI = new AwardUI(awardContainer);
+					//保存
+					this.configUI.allAwardsUI.push(awardUI);
+					return awardUI;
+				};
+				/**
+				 *删除一个奖项
+				 *@param {Award} model 奖项视图
+				 */
+				Class.prototype.deleteAwardUI = function(awardUI) {
+					this.configUI.deleteAwardUI(awardUI);
+				};
+				//运行抽奖效果
+				Class.prototype.runLottery = function(lottery, awards) {
+					this.runUI.start(lottery, awards);
+					this.lotteryButton.innerHTML = "停!";
+				};
+				//停止抽奖效果
+				Class.prototype.stopLottery = function(lottery, award) {
+					this.runUI.stop(lottery, award);
+	
+				};
+				//控制面板只读
+				Class.prototype.readonlyConfigUI = function(yesno) {
+					this.configUI.readOnly(yesno);
+				};
+				/**
+				 * 添加一个抽奖结果
+				 * @param {Object} lottery
+				 */
+				Class.prototype.insertLotteryResult = function(lottery) {
+					this.resultUI.insertLotteryResult(lottery);
+				};
+				/**
+				 * 添加一个抽奖中奖结果
+				 * @param {Object} award
+				 */
+				Class.prototype.insertAwardResult = function(award) {
+					this.resultUI.insertAwardResult(award);
+				};
+		
+				/**
+				 *抽奖运行区
+				 */
+				var RunUI = function() {
+					//配置提示区,用于显示抽奖配置是否正确之类的提示
+					this.lotteryTipEL = $("lotteryTipEL");
+					//抽奖消息标签
+					this.lotteringMessageEL = $("lotteringMessageEL");
+					//抽奖效果容器
+					this.lotteringBox = $("lotteringBox");
+					//滚动奖品区
+					this.awardRunningBox = $("awardRunningBox");
+					//最后结果显示区
+					this.lotteringRunResultEL = $("lotteringRunResultEL");
+	
+				};
+				RunUI.prototype.start = function(lottery, awards) {
+					//提示区隐藏
+					if (this.lotteryTipEL.style.display != "none") {
+						this.lotteryTipEL.style.display = "none";
+						//显示效果区
+						this.lotteringBox.style.display = "block";
+					}
+					//隐藏结果区
+					this.lotteringRunResultEL.style.display = "none";
+					//显示滚动奖品区
+					this.awardRunningBox.style.display = "block";
+					//设置消息区文字
+					this.lotteringMessageEL.innerHTML = lottery.currentPerson
+							+ "正在进行第" + lottery.currentTimes + "次抽奖:";
+					//清空之前的奖品,放入当前所有奖项(为了显示效果,放入3次)
+					var awardRunningBox = this.awardRunningBox;
+					awardRunningBox.innerHTML = "";
+					var awardEL;
+					for (var i = 0; i < awards.length * 3; i++) {
+						awardEL = document.createElement("li");
+						awardEL.innerHTML = awards[i % awards.length].name;
+						awardRunningBox.appendChild(awardEL);
+					}
+	
+					//获取滚动区父元素,用于计算最大高度
+					var scollBox = this.awardRunningBox.parentElement;
+					//计算最大滚动高度
+					var maxScollHeight = awardRunningBox.offsetHeight
+							- scollBox.offsetHeight;
+					//开始滚动
+					this.start.intervalIndex = setInterval(function() {
+						//滚动最大,从头开始
+						if (scollBox.scrollTop >= maxScollHeight) {
+							scollBox.scrollTop = 0;
+						} else {
+							scollBox.scrollTop += 20;
+						}
+					}, 30);
+	
+				};
+				//抽奖滚动效果停止
+				RunUI.prototype.stop = function(lottery, award) {
+					//清空执行
+					clearInterval(this.start.intervalIndex);
+					//隐藏滚动效果区
+					this.awardRunningBox.style.display = "none";
+					//设置消息区
+					this.lotteringMessageEL.innerHTML = lottery.currentPerson + "第"
+							+ lottery.currentTimes + "次抽奖结果为：";
+					//显示抽奖中奖结果
+					this.lotteringRunResultEL.style.display = "inline";
+					this.lotteringRunResultEL.innerHTML = award.name;
+	
+				};
+				//配置区域ui
+				var ConfigUI = function() {
+					//奖项容器
+					this.userAwardBox = $("userAwardBox");
+					//抽奖人名字控件
+					this.lotteryPersonEL = $("lotteryPersonEL");
+					//抽奖次数控件
+					this.lotteryTimesEL = $("lotteryTimesEL");
+					//是否必中奖控件
+					this.lotteryMustWinEL = $("lotteryMustWinEL");
+					//总中奖几率控件
+					this.lotteryTotalOddsEL = $("lotteryTotalOddsEL");
+					//是否平均分配几率控件
+					this.lotteryAverageOddsEL = $("lotteryAverageOddsEL");
+					//所有奖项控件
+					this.allAwardsUI = [ new AwardUI($("noWinAwardBox"), true),
+							new AwardUI($("defaultAwardBox")) ];
+					//遮罩层
+					this.maskUI = null;
+	
+				};
+				//绑定模型
+				ConfigUI.prototype.bindModel = function(model) {
+					//给EL绑定事件
+					$.bind(this.lotteryMustWinEL, "click",
+							LotteryManager.mustWinELClickHandler, model);
+					$.bind(this.lotteryAverageOddsEL, "click",
+							LotteryManager.averageOddsELClickHandler, model);
+					var allAwardsUI = this.allAwardsUI;
+					var allAwards = model.allAwards;
+					for (var i = allAwardsUI.length; i-->0;) {
+						allAwardsUI[i].bindModel(allAwards[i]);
+					}
+				};
+				//根据模型更新视图
+				ConfigUI.prototype.updateView = function(model) {
+					//抽奖人名字更新
+					this.lotteryPersonEL.value = model.currentPerson;
+					//抽奖次数更新
+					this.lotteryTimesEL.value = String(model.times);
+					//是否必中奖更新
+					this.lotteryMustWinEL.checked = model.mustWin;
+					//总中奖几率更新
+					this.lotteryTotalOddsEL.value = model.totalOdds;
+					//是否平均分配几率更新
+					this.lotteryAverageOddsEL.checked = model.averageOdds;
+					//所有奖项控件更新
+					var allAwardsUI = this.allAwardsUI;
+					var allAwards = model.allAwards;
+					for (var i = allAwardsUI.length; i-->0;) {
+						allAwardsUI[i].updateView(allAwards[i]);
+					}
+					//未中奖奖项永远只读
+					allAwardsUI[0].oddsInput.readOnly = true;
+					//最后一个+按钮显示
+					var plusBtn = allAwardsUI[allAwardsUI.length - 1].plusBtn;
+					if (plusBtn) {
+						plusBtn.style.visibility = "visible";
+					}
+	
+				};
+	
+				//所有控制区域只读
+				ConfigUI.prototype.readOnly = function(yes) {
+					//创建遮罩层,如果没有的话
+					if (!this.maskUI) {
+						var target = $.tlwh($("lotteryConfigBox"));
+						this.maskUI = new MaskUI({
+							left : target.l,
+							top : target.t,
+							width : target.w,
+							height : target.h
+						});
+					}
+					if (yes) {
+						var target = $.tlwh($("lotteryConfigBox"));
+						this.maskUI.show({
+							width : target.w,
+							height : target.h
+						});
+					} else {
+						this.maskUI.hidden();
+					}
+				}
+				//删除一个奖项ui
+				ConfigUI.prototype.deleteAwardUI = function(awardUI) {
+					var array = this.allAwardsUI;
+					var delIndex = -1;
+					for (var i = array.length; i-- > 0;) {
+						if (array[i] === awardUI) {
+							delIndex = i;
+							break;
+						}
+					}
+					array.splice(delIndex, 1);
+					awardUI.destroy();
+				};
+				//遮罩层
+				var MaskUI = function(option) {
+					this.maskUI = MaskUI.createMaskUI(option);
+					document.body.appendChild(this.maskUI);
+				};
+				//创建遮罩层
+				MaskUI.createMaskUI = function(option) {
+					var iframe = document.createElement("iframe");
+					iframe.style.position = "absolute";
+					iframe.frameBorder = "0";
+					iframe.style.zIndex = 0xffff;
+					iframe.style.backgroundColor = "gray";
+					iframe.style.display = "none";
+					if (option.top) {
+						iframe.style.top = option.top + "px";
+					}
+					if (option.left) {
+						iframe.style.left = option.left + "px";
+					}
+					if (option.width) {
+						iframe.width = option.width + "px";
+					}
+					if (option.height) {
+						iframe.height = option.height + "px";
+					}
+					if (-[ 1, ]) {//非IE
+						iframe.style.opacity = 0.4;
+					} else {
+						iframe.style.filter = "alpha(opacity=40);";
+					}
+					return iframe;
+				};
+				//显示遮罩
+				MaskUI.prototype.show = function(option) {
+					var iframe = this.maskUI;
+					if (option.top) {
+						iframe.style.top = option.top + "px";
+					}
+					if (option.left) {
+						iframe.style.left = option.left + "px";
+					}
+					if (option.width) {
+						iframe.width = option.width + "px";
+					}
+					if (option.height) {
+						iframe.height = option.height + "px";
+					}
+					iframe.style.display = "block";
+				};
+				//隐藏遮罩
+				MaskUI.prototype.hidden = function() {
+					this.maskUI.style.display = "none";
+				};
+				//删除遮罩
+				MaskUI.prototype.clear = function() {
+					this.maskUI.parentNode.removeChild(this.maskUI);
+					this.maskUI = null;
+				};
+				/**
+				 *奖项UI
+				 */
+				var AwardUI = function(container, nowinAward) {
+					this.containerEL = container;
+					this.minusBtn = null;
+					this.nameInput = null;
+					this.quantityInput = null;
+					this.oddsInput = null;
+					this.plusBtn = null;
+					//是否是没有中奖奖项
+					this.isNoWinAward = nowinAward || false;
+	
+					//init 
+					var allInputs = container.getElementsByTagName("input");
+	
+					this.nameInput = allInputs[0];
+					this.quantityInput = allInputs[1];
+					this.oddsInput = allInputs[2];
+	
+					var allButtons = container.getElementsByTagName("button");
+	
+					if (allButtons.length === 1) {
+						this.plusBtn = allButtons[0];
+					} else if (allButtons.length === 2) {
+						this.minusBtn = allButtons[0];
+						this.plusBtn = allButtons[1];
+					}
+	
+				};
+				//绑定模型
+				AwardUI.prototype.bindModel = function(model) {
+					//绑定事件
+					if (this.minusBtn) {
+						$.bind(this.minusBtn, "click",
+								LotteryManager.minusBtnClickHandler,
+								[ model, this ]);
+					}
+					if (this.plusBtn) {
+						$
+								.bind(this.plusBtn, "click",
+										LotteryManager.plusBtnClickHandler, [
+												model, this ]);
+					}
+					$.bind(this.quantityInput, "change",
+							LotteryManager.awardQuantityELAware, [ model, this ]);
+					$.bind(this.oddsInput, "change",
+							LotteryManager.awardOddsELAware, [ model, this ]);
+					$.bind(this.nameInput, "change",
+							LotteryManager.awardNameELAware, [ model, this ]);
+	
+				};
+				//根据模型更新视图 
+				AwardUI.prototype.updateView = function(model) {
+					//set value
+					this.nameInput.value = model.name;
+					this.quantityInput.value = model.quantity;
+					this.oddsInput.value = model.odds;
+					this.oddsInput.readOnly = model.lottey.averageOdds;
+	
+				};
+	
+				//销毁奖项
+				AwardUI.prototype.destroy = function() {
+					this.containerEL.parentNode.removeChild(this.containerEL);
+				};
+	
+				//结果ui
+				var ResultUI = function() {
+					this.container = $("lotteryResultBox");
+					this.currentLotteryItemBox = null;
+				};
+				ResultUI.prototype.insertLotteryResult = function(lottery) {
+					var dl = document.createElement("dl");
+					dl.className = "lottery-result-item";
+					var dt = document.createElement("dt");
+					dt.innerHTML = lottery.currentPerson + "("
+							+ $.formatDate(new Date()) + ")";
+					dl.appendChild(dt);
+					var dd = document.createElement("dd");
+					dl.appendChild(dd);
+					var ol = document.createElement("ol");
+					dd.appendChild(ol);
+					this.container.appendChild(dl);
+					this.currentLotteryItemBox = ol;
+				};
+				ResultUI.prototype.insertAwardResult = function(award) {
+					var ol = this.currentLotteryItemBox;
+					var li = document.createElement("li");
+					li.innerHTML = award.name;
+					ol.appendChild(li);
+				};
+	
+				return Class;
+	
+			}());
+	
+			/**
+			 *抽奖模型
+			 */
+			var Lottery = (function() {
+				//抽奖模型
+				var Class = function() {
+					//是否必中奖
+					this.mustWin = false;
+					//是否平均分配几率
+					this.averageOdds = true;
+					//总几率
+					this.totalOdds = 100;
+					//抽奖次数
+					this.times = 1;
+					//所有奖项
+					this.allAwards = [];
+					//当前抽奖次数
+					this.currentTimes = 0;
+					//当前抽奖人
+					this.currentPerson = "张三";
+					//当前抽奖状态
+					this.lottering = false,
+					//参与当前次抽奖的奖项
+					this.currentLottringAwards = null;
+	
+					//放入未中奖奖项和默认奖项
+					this.allAwards.push(new Award(this, "未中奖", -1, 50));
+					this.allAwards.push(new Award(this, "奖品A"));
+				};
+	
+				//新增奖项
+				Class.prototype.addAwardModel = function(name, quantity, odds) {
+					//创建模型
+					var award = new Award(this, name, quantity, odds);
+					this.allAwards.push(award);
+					return award;
+				};
+				//删除奖项
+				Class.prototype.deleteAwardModel = function(award) {
+					var array = this.allAwards;
+					var delIndex = -1;
+					for (var i = array.length; i-- > 0;) {
+						if (array[i] === award) {
+							delIndex = i;
+							break;
+						}
+					}
+					if (delIndex === -1)
+						return;
+					//删除模型
+					array.splice(delIndex, 1);
+				};
+				//验证并获取所有有效奖项
+				Class.prototype.getAllValidAwards = function() {
+					var awards = this.allAwards;
+					var result = [];
+					for (var i = 0; i < awards.length; i++) {
+						//排除无效奖项包括无名字,数量=0,几率=0的
+						if (awards[i].quantity !== 0 && awards[i].odds !== 0) {
+							result.push(awards[i]);
+						}
+					}
+					this.currentLottringAwards = result;
+					return result;
+				};
+				//更新几率
+				Class.prototype.updateOdds = function() {
+					var array = this.allAwards;
+					var noWinAward = array[0];
+					//平均分配几率
+					if (this.averageOdds) {
+						var assignedCount = array.length;
+						if (this.mustWin) { //如果必中,则未中奖排除
+							assignedCount--;
+							noWinAward.odds = 0;
+						}
+						//计算平均几率
+						var avgOdds = this.totalOdds / assignedCount;
+						//保留2位小数
+						avgOdds = Math.round(avgOdds * 100) / 100;
+						for (var i = array.length - assignedCount; i < array.length; i++) {
+							array[i].odds = avgOdds;
+						}
+					} else { //未中奖等于剩余几率,其他不处理
+	
+						if (this.mustWin) {
+							noWinAward.odds = 0;
+						}
+						var totalAssigned = this.totalOdds
+								- this.assignedOdds(!this.mustWin);
+						if (totalAssigned < 0) { //用户分配错误,改变总几率数
+							this.totalOdds = this.totalOdds - totalAssigned;
+						} else { //否则,未中奖等于剩下几率（必中奖情况下）
+							if (!this.mustWin) {
+								noWinAward.odds = totalAssigned;
+							}
+						}
+					}
+				};
+				//返回已分配几率,missNoWin指定是否排除未中奖,默认不排除
+				Class.prototype.assignedOdds = function(missNoWin) {
+					var array = this.allAwards;
+					var assigned = 0;
+					for (var i = missNoWin ? 1 : 0; i < array.length; i++) {
+						assigned += array[i].odds;
+					}
+					return assigned;
+				};
+				//开始抽奖
+				Class.prototype.randomAward = function() {
+					//当前参与抽奖奖项
+					var awards = this.currentLottringAwards;
+					//总几率等于所有奖项数量不为0的几率之和
+					var totalOdds = 0;
+					//把各个奖项几率变为不同区间
+					var oddsIntervals = [];
+					//实际总记录=总几率减去奖项数量为0的记录
+					for (var i = 0; i < awards.length; i++) {
+						if (awards[i].quantity !== 0) {
+							totalOdds += awards[i].odds;
+							oddsIntervals.push(awards[i]);
+						}
+					}
+					//如果已无可中奖奖项,返回没有中奖
+					if (oddsIntervals.length === 0) {
+						return this.allAwards[0];
+					}
+					//随机生成0-总几率直接的数
+					var winRandomNum = Math.floor(Math.random() * totalOdds);
+					//判断随机数在那个奖项几率区间
+					var currentInterval = 0;
+					for (i = 0; i < oddsIntervals.length; i++) {
+						currentInterval += oddsIntervals[i].odds;
+						if (winRandomNum < currentInterval) {
+							return oddsIntervals[i];
+						}
+					}
+	
+				};
+				//抽奖结束
+				Class.prototype.over = function() {
+					this.currentTimes = 0;
+					this.currentLottringAwards = null;
+				};
+	
+				/**
+				 *奖项模型
+				 *
+				 */
+				var Award = function(lottry, name, quantity, odds) {
+					this.name = name || "";
+					this.quantity = quantity || -1;
+					this.odds = odds || 0;
+					//关联抽奖模型
+					this.lottey = lottry;
+				};
+	
+				return Class;
+	
+			}());
+	
+			/**
+			 *核心控制器
+			 */
+			var LotteryManager = {
+				//0
+				init : function() {
+					//初始化视图和模型,单例
+					Lottery = new Lottery();
+					LotteryUI = new LotteryUI();
+					//绑定模型
+					LotteryUI.bindModel(Lottery);
+					//更新所有奖项中奖几率
+					Lottery.updateOdds();
+					//更新视图
+					LotteryUI.updateView(Lottery);
+				},
+				//异常处理
+				handlerError : function(e) {
+					alert(e);
+				},
+				//必中奖点击处理
+				mustWinELClickHandler : function(model) {
+					//1 改变模型
+					model.mustWin = this.checked;
+					//2 更新几率
+					model.updateOdds();
+					//3更新视图
+					LotteryUI.updateView(model);
+	
+				},
+				//平均分配几率点击处理
+				averageOddsELClickHandler : function(model) {
+					//1改变模型
+					model.averageOdds = this.checked;
+					//2 更新几率
+					model.updateOdds();
+					//4更新视图
+					LotteryUI.updateView(model);
+				},
+				//添加奖项按钮点击处理
+				plusBtnClickHandler : function(model) {
+					//隐藏+按钮
+					this.style.visibility = "hidden";
+					//新增一个奖项模型
+					var award = Lottery.addAwardModel();
+					//创建奖项视图
+					var newAwardUI = LotteryUI.createAwardUI(award);
+					//视图绑定模型
+					newAwardUI.bindModel(award);
+					//更新几率
+					Lottery.updateOdds();
+					//更新视图
+					LotteryUI.updateView(Lottery);
+	
+				},
+				//删除奖项按钮点击处理
+				minusBtnClickHandler : function(model, view) {
+					//删除模型
+					Lottery.deleteAwardModel(model);
+					//删除视图
+					LotteryUI.deleteAwardUI(view);
+					//更新几率
+					Lottery.updateOdds();
+					//更新视图
+					LotteryUI.updateView(Lottery);
+				},
+				//奖项数量改变
+				awardQuantityELAware : function(model) {
+					var value = parseInt(this.value, 10);
+					if (isNaN(value)) {
+						LotteryManager.handlerError("奖品数量必须是整数");
+						this.focus();
+						return;
+					}
+					model.quantity = value;
+				},
+				//奖品名称改变
+				awardNameELAware : function(model) {
+					model.name = $.trim(this.value);
+				},
+				//奖项中奖几率改变
+				awardOddsELAware : function(model) {
+					var odds = Number(this.value);
+					if (isNaN(odds) || odds < 0) {
+						this.focus();
+						LotteryManager.handlerError("中奖几率只能是数字,且必须大于0");
+						return;
+					}
+					//保留两位小数
+					model.odds = Math.round(odds * 100) / 100;
+					//更新几率
+					Lottery.updateOdds();
+					//更新视图
+					LotteryUI.updateView(Lottery);
+				},
+				//验证用户输入,并更新模型
+				_validateUserInput : function(configui, model) {
+					//抽奖人名称
+					var person = $.trim(configui.lotteryPersonEL.value);
+					if (person.length === 0) {
+						configui.lotteryPersonEL.focus();
+						throw "抽奖人名称必须填写";
+					}
+					model.currentPerson = person;
+					//抽奖次数
+					var times = $.trim(configui.lotteryTimesEL.value);
+					if (times.length === 0) {
+						configui.lotteryTimesEL.focus();
+						throw "抽奖次数必须填写,且必须为大于0的整数";
+					}
+					times = parseInt(times, 10);
+					if (times < 1) {
+						configui.lotteryTimesEL.focus();
+						throw "抽奖次数必须为大于0的整数";
+					}
+					model.times = times;
+					//总中奖几率
+					var totalOdds = $.trim(configui.lotteryTotalOddsEL.value);
+					if (totalOdds.length === 0) {
+						configui.lotteryTotalOddsEL.focus();
+						throw "总中奖几率必须填写,且必须为数字";
+					}
+					totalOdds = Number(totalOdds);
+					//保留2位小数
+					totalOdds = Math.round(totalOdds * 100) / 100;
+					model.totalOdds = totalOdds;
+					//各个奖项
+					var allAwardsUI = configui.allAwardsUI;
+					//排除未中奖奖项
+					var awardUI;
+					var award;
+					for (var i = 1; i < allAwardsUI.length; i++) {
+						awardUI = allAwardsUI[i];
+						award = model.allAwards[i];
+						//奖项名称
+						var awardName = $.trim(awardUI.nameInput.value);
+						if (awardName.length === 0) {
+							awardUI.nameInput.focus();
+							throw "奖项" + (i + 1) + "的名称必须填写";
+						}
+						award.name = awardName;
+						//奖项数量和奖项中奖几率不验证,输入不合法,抽奖时过滤
+					}
+	
+				},
+				lotteryBtnClickHandler : function() {
+	
+					if (Lottery.lottering) {//已在抽奖,停止动画,显示中奖结果 
+						//1生成奖项
+						var award = Lottery.randomAward();
+						//奖项数量-1,如果不是无穷的话
+						if (award.quantity > 0) {
+							award.quantity -= 1;
+						}
+						//2停止动画效果
+						LotteryUI.stopLottery(Lottery, award);
+						//3如果已完成本次抽奖
+						if (Lottery.currentTimes === Lottery.times) {
+							//3.1 显示所有配置控件
+							LotteryUI.readonlyConfigUI(false);
+							//3.2 更改按钮文字
+							LotteryUI.lotteryButton.innerHTML = "开始下次抽奖";
+							//通知抽奖结束
+							Lottery.over();
+							//继续抽奖    
+						} else {
+							//设置按钮文字
+							LotteryUI.lotteryButton.innerHTML = "开始抽奖(第"
+									+ (Lottery.currentTimes + 1) + "次)";
+						}
+						//设置状态为抽奖结束
+						Lottery.lottering = false;
+						//添加结果
+						LotteryUI.insertAwardResult(award);
+						//更新视图
+						LotteryUI.updateView(Lottery);
+	
+					} else {//没开始抽奖
+	
+						//1如果是第一次抽奖,则进行配置验证
+						if (Lottery.currentTimes === 0) {
+							try {
+								//1.1 验证并重构模型
+								LotteryManager._validateUserInput(
+										LotteryUI.configUI, Lottery);
+							} catch (e) {
+								LotteryManager.handlerError(e);
+								return;
+							}
+						}
+						//3获取参与抽奖的所有有效奖项
+						var awards = Lottery.getAllValidAwards();
+						if (awards.length === 0) {
+							LotteryManager.handlerError("无有效奖项,请重新配置");
+							return;
+						}
+						if (Lottery.currentTimes === 0) {
+							//1.2 配置区域不可修改
+							LotteryUI.readonlyConfigUI(true);
+							//1.3 添加结果
+							LotteryUI.insertLotteryResult(Lottery);
+						}
+	
+						//2 抽奖次数+1;
+						Lottery.currentTimes++;
+						//3.1 播放抽奖动画
+						LotteryUI.runLottery(Lottery, awards);
+						//4 设置状态为开始抽奖
+						Lottery.lottering = true;
+					}
+	
+				}
+	
+			};
+	
+			LotteryManager.init();
+		</script>
+	</body>
+
+</html>

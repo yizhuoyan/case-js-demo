@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>离线web轻应用-古文竖排工具</title>
+<style type="text/css">
+button {
+	background-color: #2D97DE;
+	border: 1px solid #2381C0;
+	cursor: pointer;
+	color: white;
+	width: 200px;
+	height: 34px;
+}
+
+button:HOVER {
+	background-color: #2088d0;
+}
+textarea{
+	box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	width: 100%;
+	text-align: left;
+	padding:5px;
+	min-height: 20em;
+}
+.appBox {
+	padding: 1em;
+	min-width: 600px;
+	background-color: #ffffcc;
+}
+
+.appBox legend {
+	font-size: 120%;
+	font-weight: bold;
+}
+
+.box-input {
+	text-align: center;
+}
+.box-output{
+	text-align: center;
+	background-color: white;
+	border: 1px solid #7ecadb;
+	min-height: 400px;
+}
+.box-output table{
+	display: inline-table;
+}
+.box-output table td{
+	padding: 2px;
+}
+.box-buttons{
+	text-align: center;
+	margin: 1em 0;
+}
+ 
+
+.message{
+	color: gray;
+	font-size: 80%;
+	font-weight: normal;
+	font-style: normal;
+}
+</style>
+
+</head>
+<body>
+	<div class="appBox">
+		<fieldset>
+			<legend>古文竖排工具</legend>
+			<div class="box-input">
+				<textarea id="inputEL" placeholder="请输入或粘贴诗词,短文等到此处,点击下面按钮即可"  contenteditable="false" autofocus></textarea>
+			</div>
+			<div class="box-buttons">
+					<button   onclick="doWork(this)">开始古文竖排</button>
+					<button   onclick="doClear(this)">清空输入</button>
+			</div>
+			<div class="box-output">
+				<p id="outputEL"   ><strong class="message">结果显示在这里</strong></p>
+			</div>
+		</fieldset>
+	</div>
+	<script>
+	
+		var doClear=function(){
+			document.getElementById("inputEL").value="";
+		}
+		 
+		 var doWork=function(){
+			 var inputText=document.getElementById("inputEL").value;
+			 //去掉后空白字符
+			 inputText=inputText.replace(/\s+$/g,"");
+			 //去掉中间非换行空白字符\f\n\r\t\v
+			// inputText=inputText.replace(/[ \t\f\v]+/g,"");
+			 //中间多个换行,变为1个换行
+			 //inputText=inputText.replace(/((\r?\n)|\r)+\s*((\r?\n)|\r)*/g,"\n");
+			 //使用换行分割,转换为矩阵
+			 var textRows=inputText.split(/(?:(?:\r?\n)|\r)/);
+			 //输入矩阵
+			 var inputMatrix=[];
+			 //最大列长度
+			 var maxColumn=0;
+			 
+			 for(var i=0;i<textRows.length;i++){
+				 var columnsArray=textRows[i].split("");
+				 if(columnsArray.length>maxColumn){
+					 maxColumn=columnsArray.length;
+				 }
+				 inputMatrix.push(columnsArray);
+			 }
+			 //定义输出矩阵
+			 
+			 var outputMatrix=[];
+			 
+			 for(var i=0;i<maxColumn;i++){
+				 outputMatrix.push([]);
+			 }
+			 
+			 for(var i=0;i<outputMatrix.length;i++){
+				 for(var j=inputMatrix.length;j-->0;){
+					 outputMatrix[i].push(inputMatrix[j][i]);
+				 }
+			 }
+			 //转换为字符串
+			 var result=[];
+			 for(i=0;i<outputMatrix.length;i++){
+				 result.push("<td>"+outputMatrix[i].join("</td><td>")+"</td>");
+			 }
+			 var outputEL=document.getElementById("outputEL");
+			 outputEL.innerHTML="<table id='resultTable'><tr>"+result.join("</tr><tr>")+"</tr></table>";
+		 }
+	</script>
+</body>
+</html>
+

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>离线web轻应用-子女血型查询</title>
+<style type="text/css">
+button {
+	background-color: #2D97DE;
+	border: 1px solid #2381C0;
+	cursor: pointer;
+	color: white;
+	width: 100px;
+	height: 3em;
+}
+
+button:HOVER {
+	background-color: #2088d0;
+}
+select{
+	background-color: #F9F9F9;
+	width: 5em;
+	height: 3em;
+	border: 1px solid #DEDEfE;
+	text-indent: .5em;
+}
+.appBox {
+	padding: 2em;
+	width: 520px;
+	background-color: #ffffcc;
+}
+
+.appBox legend {
+	font-size: 120%;
+	font-weight: bold;
+}
+
+.box-input {
+	text-align: center;
+}
+
+.box-output {
+	margin-top:1em;
+	text-align: center;
+	min-height: 100px;
+}
+
+.box-help h4 {
+	margin: 0;
+}
+
+.box-help p {
+	margin: 0;
+	text-indent: 2em;
+}
+
+ 
+</style>
+
+</head>
+<body>
+	<div class="appBox">
+		<fieldset>
+			<legend>子女血型查询</legend>
+			<div class="box-input">
+				<label>您的血型：<select id="yourTypeEL">
+						<option value="O">O型</option>
+						<option value="AB">AB型</option>
+						<option value="A">A型</option>
+						<option value="B">B型</option>
+				</select>
+				</label> <label>配偶血型：<select id="mateTypeEL">
+						<option value="O">O型</option>
+						<option value="AB">AB型</option>
+						<option value="A">A型</option>
+						<option value="B">B型</option>
+				</select>
+				</label>
+				<button onclick="doWork()">子女血型查询</button>
+			</div>
+			<div class="box-output">
+				<output id="maybeEL"> </output>
+				<br>
+				<output id="impossibileEL"> </output>
+			</div>
+			<aside class="box-help">
+				<h4>说明：</h4>
+				<p>
+				人类血型是以A、B、O等三种遗传因子的组合而决定的，具有遗传性、父母双方的血型基因在两性性细胞相结合时，可以在细胞核染色体中搭配成对，进而将血型遗传特性传给子代。也就是说：根据父母的血型即可判断出以后出生的宝宝可能出现的血型。
+				</p>
+			</aside>
+		</fieldset>
+	</div>
+	<script>
+		var doWork=function(){
+			//获取当前人和配偶血型
+			var yourType=document.getElementById("yourTypeEL").value;
+			var mateType=document.getElementById("mateTypeEL").value;
+			//开始判断
+			var babyType=predictionChildrenBooldType(yourType,mateType);
+			var maybeStr=babyType.yes.join("型,")+"型";
+			//输出结果
+			document.getElementById("maybeEL").innerHTML="您孩子的血型可能是：<mark>"+maybeStr+"</mark>";
+			if(babyType.no){
+				var noStr=	babyType.no.join("型,")+"型";		
+				document.getElementById("impossibileEL").innerHTML="不可能是：<mark>"+noStr+"</mark>";
+			}else{
+				document.getElementById("impossibileEL").innerHTML="";
+			}
+			
+		}
+		/**
+		*预测子女血型
+		*@param {String} a 一方血型,[A,B,AB,O]
+		*@param {String} b 另一方血型,[A,B,AB,O]
+		*@return {Object} 宝宝可能血型和不可能血型
+		*{yes:[],no:[]}
+		*/
+		var predictionChildrenBooldType=function(a,b){
+			switch (a) {
+			case "A":
+				if(b==="A"){
+					return {"yes":["A","O"],"no":["B","AB"]};
+				}
+				if(b==="B"){
+						return {"yes":["A","B","AB","O"],"no":null};
+				}
+				if(b==="AB"){
+					return {"yes":["A","B","AB"],"no":["O"]};
+				}
+				return {"yes":["A","O"],"no":["B","AB"]};
+			case "B":
+				if(b==="B"){
+					return {"yes":["B","O"],"no":["A","AB"]};
+				}
+				if(b==="AB"){
+					return {"yes":["A","B","AB"],"no":["O"]};
+				}
+				if(b==="O"){
+					return {"yes":["B","O"],"no":["A","AB"]};	
+				}
+				break;
+			case "AB":
+				if(b==="AB"){
+					return {"yes":["A","B","AB"],"no":["O"]};
+				}
+				if(b==="O"){
+					return {"yes":["A","B"],"no":["O","AB"]};
+				}
+				break;
+			case "O":
+				if(b==="O"){
+					return {"yes":["O"],"no":["A","B","AB"]};
+				}
+				break;
+			}
+			return predictionChildrenBooldType(b,a);
+		}
+	</script>
+</body>
+</html>
+

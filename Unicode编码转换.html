@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>离线web轻应用-Unicode编码转换</title>
+<style type="text/css">
+button {
+	background-color: #2D97DE;
+	border: 1px solid #2381C0;
+	cursor: pointer;
+	color: white;
+	width: 100px;
+	height: 34px;
+	margin-left: 1em;
+}
+
+button:HOVER {
+	background-color: #2088d0;
+}
+textarea{
+	width: 500px;
+	text-align: left;
+	min-height: 10em;
+	padding: 5px;
+	margin: 1em;
+}
+.appBox {
+	padding: 2em;
+	width: 600px;
+	background-color: #ffffcc;
+}
+
+.appBox legend {
+	font-size: 120%;
+	font-weight: bold;
+}
+
+.box-input {
+	text-align: center;
+}
+.box-output {
+	text-align: center;
+}
+.box-buttons{
+	text-align: center;
+}
+
+.box-help p {
+	text-indent: 2em;
+}
+
+
+</style>
+
+</head>
+<body>
+	<div class="appBox">
+		<fieldset>
+			<legend>Unicode编码转换</legend>
+			<div class="box-input">
+				<textarea id="inputEL" placeholder="请输入"  contenteditable="false" autofocus></textarea>
+
+			</div>
+			<div class="box-buttons">
+					<button onclick="encode2UnicodeHandler(this)">Unicode编码</button>
+					<button  onclick="unicodeDecodeHandler(this)">Unicode解码</button>
+			</div>
+			<div class="box-output">
+				<textarea id="outputEL" placeholder="结果显示在这里"  contenteditable="false" readonly></textarea>
+			</div>
+			<aside class="box-help">
+				<h4>说明：</h4>
+				<p>
+				此程序将字符编码成unicode编码形式，也将unicode编码解码为实际字符
+				</p>
+				
+			</aside>
+		</fieldset>
+	</div>
+	<script>
+		/**
+		*Unicode编码按钮点击事件处理
+		*/
+		var encode2UnicodeHandler=function(btn){
+			try{
+				btn.disabled=true;
+				//获取输入框中的字符
+				var inputEL=document.getElementById("inputEL");
+				var inputText=inputEL.value;
+				//输出框
+				var outputEL=document.getElementById("outputEL");
+				outputEL.value=string2unicode(inputText);
+			}catch(e){
+				outputEL.value=e.message;
+			}finally{
+				btn.disabled=false;
+			}
+		}
+		/**
+		*Unicode解码按钮点击事件处理
+		*/
+		var unicodeDecodeHandler=function(btn){
+			try{
+				btn.disabled=true;
+				//获取输入框中的字符
+				var inputEL=document.getElementById("inputEL");
+				var inputText=inputEL.value;
+				//输出框
+				var outputEL=document.getElementById("outputEL");
+				outputEL.value=unicode2string(inputText);
+			}catch(e){
+				outputEL.value=e.message;
+			}finally{
+				btn.disabled=false;
+			}
+		}
+		/**
+		*工具方法,字符转unicode编码
+		*/
+		var string2unicode=function(str){
+			if(str.length==0)return "";
+			var result=[];
+			//每个字符的unicode代号
+			var code=null;
+			for(var i=0;i<str.length;i++){
+				code=str.charCodeAt(i);
+				result.push("\\u");
+				//添0
+				if(code<0x10){
+					result.push("000");
+				}else	if(code<0x100){//ascii
+					result.push("00");
+				}else if(code<0x1000){
+					result.push("0");	
+				}
+				result.push(code.toString(16));
+			}
+			return result.join("");
+		}
+		/**
+		*工具方法,unicode编码转字符
+		*/
+		var unicode2string=function(unicode){
+			if(unicode.length==0)return "";
+			//格式验证
+			var matchResultArray=unicode.match(/\\u[0-9a-fA-F]{4}/g);
+			if(matchResultArray===null){
+				throw new Error("unicode编码格式错误 !");
+			}
+			var result=[];
+			//每个字符依次解析
+			for(var i=0;i<matchResultArray.length;i++){
+				var ch=String.fromCharCode(parseInt(matchResultArray[i].substr(2),16));
+				result.push(ch);
+			}
+			return result.join("");
+			
+		}
+	</script>
+</body>
+</html>
+

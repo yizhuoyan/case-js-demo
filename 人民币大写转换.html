@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>离线web轻应用-人民币大写转换</title>
+    <style type="text/css">
+        .appBox {
+            padding: 2em;
+            min-width: 450px;
+            background-color: #ffffcc;
+        }
+        
+        .appBox legend {
+            font-size: 120%;
+            font-weight: bold;
+        }
+        
+        .form-group {
+            margin: .5em;
+        }
+        
+        .appBox input {
+            width: 180px;
+            height: 2em;
+        }
+        
+        #resultOutput {
+            width: 280px;
+        }
+        
+        .appBox button {
+            background-color: #ffcc33;
+            border: 1px solid #ff9999;
+            margin-left: 1em;
+            padding: 8px 2em;
+            cursor: pointer;
+        }
+        
+        .appBox button:HOVER {
+            background-color: #ff990f;
+        }
+        
+        aside p {
+            text-indent: 2em;
+        }
+    </style>
+    <script>
+        //定义相关常量     
+        var DIGIT_CHARS = "零壹贰叁肆伍陆柒捌玖".split("");
+        var UNIT_CHARS = ["元", "角", "分", "整"];
+        var RADIX_CHARS = ["", "拾", "佰", "仟", "万", "亿"];
+
+        /**
+         * 人民大写转换
+         *@param {string} currencyStr 金额字符串
+         */
+        var convertCurrency = function (currencyStr) {
+            //1 验证输入
+            if (currencyStr.length === 0) {
+                throw new Error("请输入金额");
+            }
+            //2去掉,空格
+            currencyStr = currencyStr.replace(/[, ]/g, "");
+            if (currencyStr.length === 0) {
+                throw new Error("格式错误,请输入金额");
+            }
+            //3验证格式
+            var currencyNum = parseFloat(currencyStr);
+            if (isNaN(currencyStr)) {
+                throw new Error("格式错误,不能转换为数字");
+            }
+
+            //4限制金额 
+            if (currencyNum >= 1e12) {
+                throw new Error("金额过大,不能超过1万亿");
+            }
+
+            //5保留小数点后两位,四舍五入
+            currencyNum = Math.round(currencyNum * 100) / 100;
+            //6 处理0元
+            if (currencyNum === 0) {
+                return DIGIT_CHARS[0] + UNIT_CHARS[0];
+            }
+            //7 转换为字符串,便于取出整数和小数
+            currencyStr = String(currencyNum);
+            var dotPos = currencyStr.lastIndexOf(".");
+            var integral = currencyStr,
+                decimal = "";
+            if (dotPos !== -1) {
+                integral = currencyStr.substring(0, dotPos);
+                decimal = currencyStr.substr(dotPos + 1);
+            }
+            //8定义结果字符串数组  
+            var result = [];
+            //9处理整数部分,0.##不处理
+            if (currencyNum >= 1) {
+                var zeroCount = 0;
+                var pos, numChar;
+                for (var i = 0; i < integral.length; i++) {
+                    numChar = integral.charAt(i);
+                    pos = integral.length - i - 1;
+                    if (numChar !== "0") {
+                        //添零
+                        if (zeroCount > 0) {
+                            result.push(DIGIT_CHARS[0]);
+                            zeroCount = 0;
+                        }
+                        //放入对应大写
+                        result.push(DIGIT_CHARS[Number(numChar)]);
+                        //放入基数
+                        result.push(RADIX_CHARS[pos % 4]);
+                    } else {
+                        zeroCount++;
+                    }
+                    //添加万亿
+                    if (pos !== 0 && pos % 4 == 0 && zeroCount < 4) {
+                        result.push(RADIX_CHARS[pos / 4 + 3]);
+                    }
+
+                }
+                result.push("元");
+            }
+            //10处理小数
+            for (i = 0; i < decimal.length; i++) {
+                result.push(DIGIT_CHARS[Number(decimal.charAt(i))]);
+                result.push(UNIT_CHARS[i + 1]);
+            }
+            //11添加整或正字
+            if (decimal.length !== 2) {
+                result.push(UNIT_CHARS[3]);
+            }
+            return result.join("");
+        }
+
+        /**
+         *执行按钮点击事件处理
+         *@param {element} btn 事件源-按钮
+         */
+        var invokeClickHandler = function (btn) {
+            var resultOutput = document.getElementById("resultOutput");
+            try {
+                btn.disabled = true;
+                var currencyDigitsInput = document
+                    .getElementById("currencyDigitsInput")
+                var result = convertCurrency(currencyDigitsInput.value);
+
+                resultOutput.value = result;
+            } catch (e) {
+                resultOutput.value = e.message;
+            } finally {
+                btn.disabled = false;
+            }
+
+        }
+    </script>
+</head>
+
+<body>
+    <div class="appBox">
+        <fieldset>
+            <legend>人民币大写在线转换工具</legend>
+            <div class="form-group">
+                <label>金额（元）：</label>
+                <input id="currencyDigitsInput" maxlength="15" autofocus="autofocus" autocomplete="off" placeholder="请输入人民币金额">
+                <button onclick="invokeClickHandler(this)">转换</button>
+            </div>
+
+            <div class="form-group">
+                <label>人民币大写：</label>
+                <input id="resultOutput" readonly>
+            </div>
+            <aside class="e">
+                <h1>说明</h1>
+                <p>
+                    将阿拉伯数字复制粘贴或输入到输入框中，比如（123456），然后单击“转换”。 转换结果将显示下面的文本框中,最后复制转换完成的内容到想到的地方粘贴即可。
+                </p>
+            </aside>
+
+        </fieldset>
+    </div>
+</body>
+
+</html>

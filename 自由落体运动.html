@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="Author" content="YIZHUOYAN">
+  <title>自由落体运动</title>
+  <style>
+	html{
+		height:100%;
+	}
+	body{
+		margin:0;
+		height:100%;
+		overflow:hidden;
+	}
+	#ball{
+		background:red;
+		width:50px;
+		height:50px;
+		position:absolute;
+		left:0;
+		top:0;
+		right:0;
+		margin:auto;
+		border-radius:25px;
+	}
+  </style>
+ </head>
+ <body>
+	<div id="ball">
+	</div>
+	<script>
+		var ball=document.getElementById("ball");
+		var bodyH=document.body.offsetHeight;
+		var ballH=ball.offsetHeight;
+		var maxTop=bodyH-ballH;
+		//帧
+		var fps=1000/30;
+		//碰撞能耗系数
+		var collisionFactor=0.1;
+		//重力系数
+		var g=1;
+		//垂直反弹速度
+		var againstSpeed=null;
+		//加速度
+		var a=1;
+		//当前方向
+		var updown="down";
+		var run=function(){
+			var begin=new Date().getTime();
+			if("down"===updown){
+				if(ball.offsetTop+a>=maxTop){
+					ball.style.top=maxTop+"px";
+					againstSpeed=a*(1-collisionFactor);
+					console.debug(againstSpeed+" "+a)
+					a=1;
+					updown="up";
+				}else{
+					ball.style.top=ball.offsetTop+a+"px";
+				}
+			}else{
+				var s=againstSpeed-a;
+				if(s<=0){
+					a=1;
+					updown="down";
+					//停止
+					if(ball.offsetTop+a>=maxTop){
+							//return;
+					}
+				}else{	
+					ball.style.top=ball.offsetTop-s+"px";
+				}
+			}
+			//改变加速度
+			a+=g*2;
+
+			var pass=new Date().getTime()-begin;
+			if(pass<fps){
+				setTimeout(run,fps-pass);
+			}else{
+				setTimeout(run,0);
+			}
+		};
+		//添加点击事件
+		var addListener=function(){
+			if(ball.addEventListener){
+				ball.addEventListener("click",handleClickEvent);
+			}else{
+				ball.attachEvent("onclick",handleClickEvent);
+			}
+		}
+		var handleClickEvent=function(evt){
+			evt=evt||window.evt;
+			var ball=evt.target||evt.srcElement;
+			//
+			againstSpeed=Math.random()*100;
+			//当前方向
+			updown="up";
+		}
+		addListener();
+		run();
+	</script>
+ </body>
+</html>

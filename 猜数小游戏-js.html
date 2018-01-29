@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <title>猜数小游戏</title>
+	<script>
+		var welcome="欢迎进入猜数小游戏!\r\n"
+		+"游戏规则：\r\n"
+		+"游戏首先随机生成一个目标数（100以内的正整数）,然后玩家输入一个数,"
+		+"游戏提示玩家输入的数比目标数大或小,让用户再次输入,直到猜到为止.\r\n"
+		+"目标数已生成,你准备好了开始吗？";
+		alert(welcome);
+		var target=Math.round(Math.random()*100);
+		var tip="请猜一个数";
+		var times=0;
+		while(true){
+			var inputStr=prompt(tip,"");
+			var input=parseInt(inputStr);
+			if(isNaN(input)){
+				alert("请输入小于100的正整数哦");
+				continue;
+			}
+			times++;
+			if(target>input){
+				tip="你猜的数小了哦,请努力猜一个大点的数!";
+			}else if(target<input){
+				tip="你猜的数太大了,能羞涩点猜一个小点的吗？";
+			}else {
+				var succedTip="你真棒哦,猜了"+times+"次终于猜到这个数就是"+target+"了!想要再玩一次吗？";
+				var replay=confirm(succedTip);
+				if(replay){
+					target=Math.round(Math.random()*100);
+					times=0;
+					tip="目标数又生成好了,你再猜猜呢";
+				}else{
+					alert("好的,欢迎下次在玩");
+					break;	
+				}
+			} 	
+		}
+			
+	</script>    
+  </head>
+  <body>
+    
+  </body>
+</html>

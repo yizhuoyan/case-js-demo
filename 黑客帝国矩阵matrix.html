@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  	<meta charset="utf-8">
+    <title>HTML5骇客帝国数字矩阵效果</title>
+    <style type="text/css">
+    	html,body{
+    		margin: 0;
+			overflow: hidden;
+    		height: 100%;
+    		background-color:#000;
+    	}
+    </style>
+  </head>
+  <body>
+  	<canvas   id="matrixCanvas"></canvas>
+
+  <script type="text/javascript">
+  	  		var canvas=document.getElementById("matrixCanvas");
+  			canvas.width=document.body.offsetWidth;
+	  		canvas.height=document.body.offsetHeight;
+			
+	  		
+			var matrix=[];
+	  		for(var i=canvas.width/10;i-->0;matrix.push({text:"0",y:0,x:i*10,fontsize:12,speed:6}));
+			//画布
+			var ctx=canvas.getContext("2d");
+			//画布高宽
+			var cw=canvas.width,ch=canvas.height;
+			//雨密度
+			var density=0.005;
+			//绘制方法
+	  		var paint=function(){
+				ctx.fillStyle="rgba(0,0,0,0.04)";
+				ctx.fillRect(0,0,cw,ch);
+				ctx.fillStyle="#0F0";
+				for(var i=matrix.length,m;i-->0;){
+					m=matrix[i];
+					if(m.y>=ch){
+						//控制密度
+						if(Math.random()<density){
+							m.y=0;
+							m.fontsize=Math.floor(Math.random()*10)+12;//10-22
+							m.speed=m.fontsize/2;
+						}
+					}else{
+						ctx.font=m.fontsize+"px 'Terminal'";
+						ctx.fillText(m.text,m.x,m.y+=m.speed);
+					}
+				}
+			};
+
+
+
+
+			var FPS=1000/30;
+			//动画绘制
+			var run=function(){
+				var begin=new Date().getTime();
+				paint();
+				begin=new Date().getTime()-begin;
+				if(begin<FPS){
+					setTimeout(run,FPS-begin);
+				}else{
+					setTimeout(run,0);
+				}
+			}
+			run();
+ </script>
+    </body>
+</html>

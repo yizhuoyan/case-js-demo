@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  	<meta charset="utf-8">	
+    <title>猜数小游戏</title>
+    <style type="text/css">
+        .appBox {
+            padding: 2em;
+            min-width: 450px;
+            background-color: #ffffcc;
+        }
+        
+        .appBox legend {
+            font-size: 120%;
+            font-weight: bold;
+        }
+        .appBox button {
+            background-color: #ffcc33;
+            border: 1px solid #ff9999;
+            margin-left: 1em;
+            padding: 8px 2em;
+            cursor: pointer;
+        }
+        
+        .appBox button:HOVER {
+            background-color: #ff990f;
+        }
+        .welcome{
+        	
+        }
+       .playing{
+       	display: none;
+       }
+       .gameover{
+       	display: none;
+       }
+       .button-box{
+       	text-align: center;
+       }
+       input{
+       	background-color: #F9F9F9;
+		height: 30px;
+		border: 1px solid #DEDEfE;
+		margin-right: 1em;
+		text-indent: 5px;
+       }
+    </style>
+  </head>
+  <body>
+  	<div class="appBox">
+        <fieldset>
+            <legend>猜数小游戏</legend>
+            <div id="welcomeStage" class="welcome">
+            	<h1>欢迎进入猜数小游戏!</h1>
+            	<dl>
+            		<dt>游戏规则：</dt>
+            		<dd>
+            			游戏首先随机生成一个目标数（1-100以内的正整数,不包含100）,然后玩家输入一个数,
+            			游戏提示玩家输入的数比目标数大或小且让用户再次猜测,直到猜到为止.您明白了吗？
+            		</dd>
+            	</dl>
+            	<div class="button-box">
+            		<button onclick="gameStart()">我明白了,开始游戏</button>
+            	</div>
+            </div>
+
+            <div id="playingStage" class="playing">
+            	<h1 id="tipMessageEL">目标数已生成好,请猜猜吧!</h1>
+                <label>我猜是：<input id="userInputEL"  maxlength="2"></label>
+                <button onclick="guessOnce()">确认</button>
+            </div>
+           <div id="gameoverStage" class="gameover">
+           		<h1 id="gameoverTipEL">恭喜你,你猜对了</h1>
+           		<button onclick="playAgain()">我再玩一次!</button>
+           </div>
+
+        </fieldset>
+    </div>
+	<script>
+		/**
+		 * 游戏开始
+		 */
+		var gameStart=function(){
+			var welcomeStageEL=document.getElementById("welcomeStage");
+			welcomeStageEL.style.display="none";
+			var playingStageEl=document.getElementById("playingStage");
+			playingStageEl.style.display="block";
+		}
+		/**
+		 * 再玩一次
+		 */
+		var playAgain=function(){
+			document.location.href=document.location.href;
+		}
+		//目标数
+		var gameTargetNum=Math.floor(Math.random()*99)+1;
+		//猜测次数
+		var guessTimes=0;
+		/**
+		 * 猜一次
+		 */
+		var guessOnce=function(){
+			var userInput=document.getElementById("userInputEL");
+			var guessNum=parseInt(userInput.value);
+			if(isNaN(guessNum)||guessNum<1||guessNum>99){
+				playingTip("请输入1-100之间的整数");	
+				return;
+			}
+			guessTimes++;
+			
+			if(guessNum>gameTargetNum){
+				playingTip("你猜的数是"+guessNum+",但太大了,能羞涩点猜一个小点的吗？");
+			}else if(guessNum<gameTargetNum){
+				playingTip("你猜的数是"+guessNum+",但有点小了哦,请努力猜一个大点的数!");
+			}else{
+				gameOver();
+			}
+			
+		}
+		/**
+		 * 游戏提示
+		 * @param {string} tip
+		 */
+		var playingTip=function(tip){
+			var tipMessageEL=document.getElementById("tipMessageEL");
+			tipMessageEL.innerHTML=tip;
+		}
+		/**
+		 * 游戏结束界面
+		 */
+		var gameOver=function(){
+			var playingStageEl=document.getElementById("playingStage");
+			playingStageEl.style.display="none";
+			var gameoverStageEL=document.getElementById("gameoverStage");
+			gameoverStageEL.style.display="block";
+			var gameoverTipEL=document.getElementById("gameoverTipEL");
+			var tip="";
+			if(guessTimes<5){
+				tip="你真棒哦,猜了"+guessTimes+"次就猜到这个数是"+gameTargetNum+"了!想要再玩一次吗？";
+			}else{
+				tip="你真笨哦,猜了"+guessTimes+"次才猜到这个数就是"+gameTargetNum+"了!想要再玩一次吗？";
+			}
+			gameoverTipEL.innerHTML=tip;
+		}
+		
+	</script>    
+  </body>
+</html>

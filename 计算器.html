@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>离线web轻应用-计算器</title>
+<style type="text/css">
+button {
+	background-color: #356AB2;
+	border: 1px solid #2381C0;
+	cursor: pointer;
+	color: white;
+	width: 4em;
+	padding: 5px 0;
+	border-radius: 6px;
+	-moz-border-radius: 6px;
+}
+
+button.big {
+	width: 100%;
+}
+
+button:HOVER {
+	background-color: #324667;
+}
+
+.appBox {
+	padding: 1em;
+	width: 350px;
+	background-color: #ffffcc;
+}
+
+.appBox legend {
+	font-size: 120%;
+	font-weight: bold;
+}
+
+.calculatorBox {
+	background-image:
+		url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAMAAACeL25MAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RDQxMjNCNzhFRTM3MTFFNEFGNTg4NDkyOEQ0RDFBQUYiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RDQxMjNCNzlFRTM3MTFFNEFGNTg4NDkyOEQ0RDFBQUYiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpENDEyM0I3NkVFMzcxMUU0QUY1ODg0OTI4RDREMUFBRiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpENDEyM0I3N0VFMzcxMUU0QUY1ODg0OTI4RDREMUFBRiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PtBpg2YAAAAPUExURWhvenp/iGdvekdOVmpve8z1BXYAAAAaSURBVHjaYmBhYGRgYGYAAkYQwcTAzAQQYAAAtAARmaidtAAAAABJRU5ErkJggg==");
+	background-repeat: repeat;
+	border-radius: 8px;
+	-moz-border-radius: 8px;
+	padding: 1em;
+}
+
+#calculatorTable {
+	border-collapse: collapse;
+	text-align: center;
+	height: 350px;
+	margin: auto;
+}
+
+#calculatorTable td {
+	padding: 8px;
+}
+
+input.text {
+	background-color: #F9F9F9;
+	width: 90%;
+	height: 2em;
+	border: 1px solid #DEDEfE;
+	font-size: 150%;
+	text-align: right;
+	padding-right: 5px;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+}
+</style>
+<script>
+	/**
+	 *工具方法,为指定元素绑定事件
+	 *@param {element} e 目标元素 
+	 *@param {string} evtType 事件类型
+	 *@param {function} handler 事件处理方法
+	 */
+	var addListener = function(e, evtType, handler) {
+		if (e.attachEvent) {
+			e.attachEvent("on" + evtType, function(evt) {
+				handler.call(e, event);
+			})
+		} else {
+			e.addEventListener(evtType, function(evt) {
+				handler.call(e, evt);
+			}, false);
+		}
+	}
+</script>
+</head>
+<body>
+	<div class="appBox">
+		<fieldset>
+			<legend> 计算器 </legend>
+			<div class="calculatorBox">
+				<table id="calculatorTable">
+
+				</table>
+			</div>
+		</fieldset>
+		<script>
+			/**
+			 *计算器按钮构造方法
+			 *@param {String} text 按钮文本
+			 *@param {String} value 按钮值,默认为按钮文本
+			 *@param {String} className 按钮样式,默认为normal
+			 *
+			 */
+			var CButton = function(text, value, className) {
+				this.text = text ;
+				this.value = value||text;
+				this.className = className || "normal";
+			}
+			/**
+			 *所有按钮点击事件处理,绑定到CButton上,减少全局变量
+			 */
+			CButton.btnClickHandler = function(evt) {
+				//2 获取按钮上绑定的CButton对象
+				var cBtn = this.cButton;
+				//3 判断按钮类型,执行不同逻辑
+				//3.1 清除按钮,直接清屏
+				if (cBtn.value === "clear") {
+					calculator.clear();
+					//3.2  退格按钮在不同输入状态下执行不同逻辑
+				} else if (cBtn.value === "backspace") {
+
+					switch (calculator.status) {
+					case 0:// 清屏状态下什么都不做
+						break;
+					case 1://输入表达式时,清除最后一个字符
+						calculator.backspace();
+						break;
+					case 2://已完成计算情况下,如果计算正确,则清除一个字符,否则,执行清屏
+						//3.2.1  计算错误,清屏
+						if (isNaN(calculator.value)
+								|| !isFinite(calculator.value)) {
+							calculator.clear();
+						} else {
+							//3.2.2 结果正确执行退格
+							calculator.backspace();
+						}
+						break;
+					}
+					//3.3 =号按钮,根据输出框中表达式进行计算	
+				} else if ("=" === cBtn.value) {
+					//仅在输入表达式式进行计算
+					if (calculator.status === 1) {
+						//改变状态
+						calculator.status = 2;
+						// 执行计算
+						calculator.value = calculator.calculate(calculator.exp);
+						//表达式错误,输出error
+						if (isNaN(calculator.value)) {
+							calculator.output.value = "error!"
+						} else {
+							calculator.output.value = calculator.value;
+							calculator.exp = String(calculator.value);
+						}
+					}
+					//3.4 其他按钮	
+				} else {
+					switch (calculator.status) {
+					case 0:// 清屏状态后直接输入
+						calculator.output.value = cBtn.text;
+						calculator.exp = cBtn.value;
+						calculator.value = null;
+						calculator.status = 1;
+						break;
+					case 1://输入表达式时追加
+						calculator.output.value += cBtn.text;
+						calculator.exp += cBtn.value;
+						break;
+					case 2://已完成计算情况下
+						//如果计算正确,追加,否则清屏后输入
+						if (isNaN(calculator.value)
+								|| !isFinite(calculator.value)) {//计算错误,清屏
+							calculator.clear();
+							calculator.output.value = cBtn.text;
+							calculator.exp = cBtn.value;
+						} else {
+							calculator.output.value += cBtn.text;
+							calculator.exp += cBtn.value;
+						}
+						calculator.status = 1;
+						calculator.value = null;
+						break;
+					}
+				}
+
+			}
+			//定义计算器对象
+			var calculator = {
+				output : null,//输出框,在创建表格时赋值
+				exp : "",//计算表达式
+				value : null,//计算结果,Infinity和NaN表示计算错误,其他正常
+				status : 0,//0表示刚初始化或清屏,1表示正在输入表达式,2表示已完成计算
+				buttons : [//定义所有的计算器按钮
+				new CButton("清屏", "clear"), ,//空1个位置
+				,//空1个位置
+				new CButton("退格", "backspace"), new CButton("("),
+						new CButton(")"), new CButton("%"),
+						new CButton("÷", "/"), new CButton("7"),
+						new CButton("8"), new CButton("9"),
+						new CButton("×", "*"), new CButton("4"),
+						new CButton("5"), new CButton("6"), new CButton("-"),
+						new CButton("1"), new CButton("2"), new CButton("3"),
+						new CButton("+"), new CButton("0"), new CButton("."),
+						new CButton("＝", "=", "big") ],
+				//定义清屏方法
+				clear : function() {
+					if (this.status !== 0) {//不是初始状态或清屏,则清屏
+						this.output.value = "0";
+						this.exp = "";
+						this.value = null;
+						this.status = 0;
+					}
+				},
+				//核心退格逻辑
+				backspace : function() {
+					var output = this.output;
+					if (output.value.length !== 0) {//
+						output.value = output.value.slice(0, -1);
+						this.exp = this.exp.slice(0, -1);
+					}
+					//如果最后一个字符也清除掉了,执行清屏
+					if (output.value.length === 0) {
+						this.clear();
+					}
+				},
+				/**
+				 *核心方法,根据表达式进行计算,目前使用eval方法进行计算
+				 *@param {String} exp 数学式子
+				 *@return {Number} 计算结果,
+				 *	如果表达式不合法,则返回NaN,
+				 *	如果除数为0,则返回+-Infinity
+				 *	其他返回计算结果,如果是结果是小数,则保留最多保留10位小数
+				 */
+				calculate : function(exp) {
+					try {
+						var value = eval(exp);
+						//如果是小数,处理浮点数不能精确计算的问题
+						if (isFinite(value) && value % 1 !== 0) {
+							//保留10位小数
+							value = (Math.round(value * 1e10)) / 1e10;
+						}
+						
+						return value;
+					} catch (e) {
+						return NaN;
+					} finally {
+						this.value = value;
+					}
+				},
+				/**
+				 *核心方法,创建计算器表格
+				 *@param {HTMLTableElement} table 表格对象
+				 */
+				createCalculatorTable : function(table) {
+					//1 生成输出框行
+					var tr, td;
+					tr = table.insertRow(-1);
+					td = tr.insertCell(-1);
+					//1.1 占满一行
+					td.colSpan = 5;
+					//1.2 放入input,作为输入框
+					var input = document.createElement("input");
+					input.className = "text";
+					input.readOnly = true;
+					td.appendChild(input);
+					//1.3 保存input作为计算器的输出
+					this.output=input;
+					
+					//2 生成计算器按钮
+					var btn, cBtn;
+					//2.1 每行4个,共6行
+					for (var i = 0; i < 6; i++) {
+						tr = table.insertRow(-1);
+						for (var j = 0; j < 4; j++) {
+							td = tr.insertCell(-1);
+							cBtn = this.buttons[i * 4 + j];
+							//第一行仅2个按钮
+							if (cBtn) {
+								//2.2 根据CButton创建按钮 
+								btn = document.createElement("button");
+								td.appendChild(btn);
+								btn.className = cBtn.className;
+								btn.innerHTML = cBtn.text;
+								//2.3 绑定CButton对象到按钮上
+								btn.cButton = cBtn;
+								//2.4 添加按钮点击事件
+								addListener(btn, "click",
+										CButton.btnClickHandler);
+								//2.5 特殊处理最后一个,占两行
+								if (i === 5 && j === 2) {
+									td.colSpan = 2;
+									break;
+								}
+							}
+						}
+					}
+				}
+				 
+			}
+			//页面加载完毕后,创建计算器表格
+			window.onload = function() {
+				var calculatorTable = document
+						.getElementById("calculatorTable");
+				calculator.createCalculatorTable(calculatorTable);
+			}
+		</script>
+	</div>
+
+</body>
+</html>
+

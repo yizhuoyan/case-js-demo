@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="Author" content="YIZHUOYAN">
+  <title>霓虹灯</title>
+  <style>
+	body{
+		margin:0;
+	}
+	.box{
+		padding:4em;
+	}
+  </style>
+ </head>
+ <body>
+	<script>
+		var createView=function(n){
+			var parent=document.body;
+			while(n--){
+				var div=document.createElement("div");
+				div.className="box";
+				div.style.backgroundColor=randomColor();
+				parent.appendChild(div);
+				parent=div;
+			}
+		}
+		var randomColor=function(){
+			return "#"+(parseInt(Math.random().toString().substr(2)).toString(16).substring(0,6));
+		}
+		var start=function(){
+			createView(6);
+			var boxes=document.getElementsByTagName("div");
+			var run=function(){
+				var tempColor=boxes[0].style.backgroundColor;
+				for(var i=0,len=boxes.length-1;i<len;i++){
+					boxes[i].style.backgroundColor=boxes[i+1].style.backgroundColor;
+				}
+				boxes[boxes.length-1].style.backgroundColor=tempColor;
+			}
+			setInterval(run,500);
+		}
+		start();
+	</script>
+ </body>
+</html>

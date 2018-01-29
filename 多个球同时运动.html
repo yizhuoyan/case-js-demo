@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="Author" content="YIZHUOYAN">
+  <title>Document</title>
+  <style>
+	html,body{
+		margin:0;
+		height:100%;
+		overflow:hidden;
+		background:#000;
+	}
+	.ball{
+		
+		width:50px;
+		height:50px;
+		position:absolute;
+		left:0;
+		top:0;
+		border-radius:25px;
+		text-align:center;
+		line-height:50px;
+		cursor:pointer;
+
+	}
+	.ball:hover{
+		background:red;
+	}
+  </style>
+ </head>
+
+ <body>
+	<script>
+		var Util=(function(){
+			return {
+				randomFloat:function(a,b){
+					return Math.random()*Math.abs(a-b)+Math.min(a,b);
+				},
+				randomInt:function(a,b){
+					return Math.floor(Math.random()*Math.abs(a-b))+Math.min(a,b);
+				},
+				addListener:function(target,type,handler){
+					if(target.attachEvent){
+						target.attachEvent("on"+type,handler);
+					}else{
+						target.addEventListener(type,handler);
+					}
+				}
+			};
+		})();
+		var Ball=(function(){
+			var Class=function(game){
+				//名字
+				this._name=null;
+				//垂直速度
+				this.vSpeed=null;
+				//水平速度
+				this.hSpeed=null;
+				//加速度
+				this.a=1;
+				//x,y坐标
+				this._x=null;
+				this._y=null;
+				//高宽
+				this.w=null;
+				this.h=null;
+				//当前方向
+				this.updown;
+				this.leftright;
+				//视图
+				this.view=null;
+				//控制器
+				this.game=game;
+				//边界
+				this.maxX=null;
+				this.maxY=null;
+				//碰撞能耗系数
+				this.hitLossFactor;
+				//风阻系数
+				this.windageFactor=0.1;
+				this._init();
+
+			}
+			Class.prototype={
+				_init:function(){
+					var ball=document.createElement("div");
+					ball.className="ball";
+					ball.style.backgroundColor="#"+Util.randomInt(0,0xffffff).toString(16);
+					document.body.appendChild(ball);
+					this.view=ball;
+					ball.model=this;
+					this.w=ball.offsetWidth;
+					this.h=ball.offsetHeight;
+					var game=this.game;
+					this.maxX=game.maxW-this.w;
+					this.maxY=game.maxH-this.h;
+					this.updown="down";
+					this.leftright="right";
+					this.hitLossFactor=Util.randomFloat(0.1,0.5);
+					this.hSpeed=Util.randomFloat(100,300);
+				},
+				name:function(){
+					if(arguments.length===0)return this._name;
+					this._name=String(arguments[0]);
+					this.view.innerHTML=this._name;
+				},
+				x:function(x){
+					var view=this.view;
+					view.style.left=x+"px";
+					this._x=x;
+				},
+				y:function(y){
+					var view=this.view;
+					view.style.top=(this.maxY-y)+"px";
+					this._y=y;
+				},
+				setPower:function(hs,vs){
+					this.vSpeed=vs;
+					this.hSpeed=hs;
+					this.updown="up";
+				},
+				paint:function(now){
+					if(this.vSpeed===0&&this.hSpeed===0){
+						return;
+					}	
+					var ball=this.view;
+					 if(this.updown==="down"){
+						if(this._y<=this.a){//下落到底部
+							this.y(0);
+							this.vSpeed=this.a*(1-this.hitLossFactor);
+							this.a=1;
+							this.updown="up";
+						}else{
+							this.y(this._y-this.a);
+						}
+						this.a+=2;
+					 }else{//反弹
+						var s=this.vSpeed-this.a;	//8.1-9
+						if(s<=0){//开始下落
+							this.a=1;
+							this.updown="down";
+							
+							if(this._y<=this.a){//不足以下次反弹,停止
+								this.y(0);
+								this.vSpeed=0;
+								return;
+							}
+							
+						}else{
+							this.y(this._y+s);//7.1
+						}
+						this.a+=2;
+					 }
+					 if(this.leftright==="right"){
+						if(this._x+this.hSpeed>=this.maxX){
+							this.x(this.maxX);
+							this.leftright="left";
+							this.hSpeed*=(1-this.hitLossFactor);
+						}else{
+							this.x(this._x+this.hSpeed);
+						}
+					 }else{
+						if(this._x-this.hSpeed<=0){
+							this.x(0);
+							this.leftright="right";
+							this.hSpeed*=(1-this.hitLossFactor);
+						}else{
+							this.x(this._x-this.hSpeed);
+						}
+					 }
+					 
+					 this.hSpeed-=this.windageFactor;	
+					 if(this.hSpeed<=0){
+						this.hSpeed=0;
+						return;
+					 }
+				}
+			};
+			return Class;
+		})();
+		var Game=(function(){
+			var Class=function(){
+				this.world=document.body;
+				this.balls=null;
+				this.maxW=0;
+				this.maxH=0;
+				this.ballAmount=100;
+				this._init();
+
+			};
+			Class.prototype={
+				_init:function(){
+					//计算画布高度
+					this.maxW=this.world.offsetWidth;
+					this.maxH=this.world.offsetHeight;
+					//创建ball
+					var balls=[];
+					for(var i=this.ballAmount,ball;i-->0;){
+						ball=new Ball(this);			
+						ball.name(i);
+						ball.x(Util.randomInt(0,this.maxW));
+						ball.y(Util.randomInt(this.maxH/2,this.maxH*2));
+						balls[i]=ball;
+					}
+					this.balls=balls;
+
+				},
+				_run:function(){
+					var begin=new Date().getTime();
+					var balls=Game.balls;
+					for(var i=balls.length,ball;i-->0;){
+						ball=balls[i];
+						ball.paint();
+					}
+					begin=new Date().getTime()-begin;
+					var fps=Game.FPS;
+					if(begin<fps){
+						setTimeout(Game._run,fps-begin);
+					}else{
+						setTimeout(Game._run,0);
+					}
+				},
+				_addListener:function(){
+					Util.addListener(this.world,"mousedown",function(evt){
+						evt=evt||window.evt;
+						var target=evt.target||evt.srcElement;
+						if(target.className==="ball"){
+							target.mouseDownTime=new Date().getTime();
+						}
+						
+					});
+					Util.addListener(this.world,"mouseup",function(evt){
+						evt=evt||window.evt;
+						var target=evt.target||evt.srcElement;
+						if(target.className==="ball"){
+							var mouseDownTime=target.mouseDownTime;
+							var power=new Date().getTime()-mouseDownTime;
+							target.model.setPower(power,power/2);
+						}
+						
+					});
+				},
+				start:function(){
+					this._addListener();
+					this._run();
+				}
+			};
+			
+			return new Class();
+		})();
+		Game.FPS=1000/30;
+		Game.start();
+	</script>
+	<script>
+	</script>
+ </body>
+</html>

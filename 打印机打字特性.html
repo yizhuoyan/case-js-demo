@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="Author" content="YIZHUOYAN">
+  <title>Document</title>
+ </head>
+ <body>
+	<div id="box">
+		猫，属于猫科动物，分家猫、野猫，是全世界家庭中较为广泛的宠物。家猫的祖先据推测是起源于古埃及的沙漠猫，波斯的波斯猫，已经被人类驯化了3500年（但未像狗一样完全地被驯化）。
+一般的猫：头圆、颜面部短，前肢五指，后肢四趾，趾端具锐利而弯曲的爪，爪能伸缩。夜行性。
+以伏击的方式猎捕其他动物，大多能攀缘上树。猫的趾底有脂肪质肉垫，以免在行走时发出声响，捕猎时也不会惊跑鼠。行进时爪子处于收缩状态，防止爪被磨钝，在捕鼠和攀岩时会伸出来。
+	</div>
+  <script>
+		var TypeWriter=(function(){
+			var Class=function(target){
+				this.target=target;
+				this.speed=1000/5;
+				this.html=null;
+				this.currentPos=null;
+				this._init();
+			}
+			Class.prototype={
+				_init:function(){
+					var target=this.target;
+					if(typeof target==="string"){
+						target=document.getElementById(target);
+					}
+					if(!target){
+						throw new Error("can not found "+this.target);
+					}
+					target._model=this;
+					this.html=target.innerHTML;
+					target.innerHTML="";
+					this.target=target;
+					this.currentPos=1;
+				},
+				run0:function(){
+					var target=this.target;
+					var html=this.html;
+					var pos=this.currentPos;
+					var write=html.substr(0,pos)+((pos&1)===1?"_":"");
+					target.innerHTML=write;
+					pos++;
+					if(pos>=html.length){
+						target.innerHTML=html;
+						this.run(false);
+					}
+					this.currentPos=pos;
+				}
+			};
+
+			Class.prototype.run=function(yesno){
+				if(arguments.length===0||yesno){
+					var that=this;
+					this.intervalIndex=setInterval(function(){
+						that.run0();
+					},this.speed);
+				}else{
+					clearInterval(this.intervalIndex);
+				}
+			}
+			return Class;
+		})();
+
+		var tw=new TypeWriter("box");
+		tw.run();
+		
+  </script>
+ </body>
+</html>

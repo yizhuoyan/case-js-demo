@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>离线web轻应用-数据存储单位换算</title>
+<style type="text/css">
+.appBox {
+	padding: 2em;
+	min-width: 700px;
+	background-color: #ffffcc;
+}
+
+.appBox legend {
+	font-size: 120%;
+	font-weight: bold;
+}
+
+.appBox table {
+	
+}
+
+.appBox td {
+	text-align: right;
+	padding: 5px 1em;
+}
+
+td label {
+	padding-right: 5px;
+	display: inline-block;
+	width: 5em;
+}
+
+mark {
+	display: inline-block;
+	width: 2em;
+	text-align: left;
+	padding-left: 2px;
+	background-color: transparent;
+}
+
+.appBox input {
+	width: 160px;
+	height: 2em;
+}
+
+#resultOutput {
+	width: 280px;
+}
+
+.appBox button {
+	background-color: #ffcc33;
+	border: 1px solid #ff9999;
+	margin-left: 1em;
+	padding: 8px 2em;
+	cursor: pointer;
+}
+
+.appBox button:HOVER {
+	background-color: #ff9900;
+}
+</style>
+
+</head>
+<body>
+	<div class="appBox">
+		<fieldset>
+			<legend>
+				数据存储单位换算<small>[国际单位：字节]</small>
+			</legend>
+			<table>
+				<tr>
+					<td><label>字节:</label> <input modulus="1"> <mark>Byte</mark>
+					</td>
+					<td><label>比特位:</label> <input modulus="0"> <mark>bit</mark>
+					</td>
+				</tr>
+				<tr>
+					<td><label>千字节:</label> <input modulus="2"> <mark>KB</mark>
+					</td>
+					<td><label>兆字节:</label> <input modulus="3"> <mark>MB</mark>
+					</td>
+				</tr>
+				<tr>
+					<td><label>吉字节:</label> <input modulus="4"> <mark>GB</mark>
+					</td>
+					<td><label>太字节:</label> <input modulus="5"> <mark>TB</mark>
+					</td>
+				</tr>
+				<tr>
+					<td><label>拍字节:</label> <input modulus="6"> <mark>PB</mark>
+					</td>
+					<td><label>艾字节:</label> <input modulus="7"> <mark>EB</mark>
+					</td>
+				</tr>
+			</table>
+			<aside>
+				<p>
+					使用说明：
+					在任意输入框中输入数字,其他输入框会自动进行单位实时换算显示结果.
+				</p>
+				<p>换算规则：
+				<ul>
+					
+					<li>1 Byte (B) = 1024 bit (2进制位,最小单位) </li>
+					<li>1 Kilo Byte（KB） = 1024 B (字节,常用单位)</li>
+					<li>1 Mega Byte（MB） = 1024 KB</li>
+					<li>1 Giga Byte （GB）= 1024 MB</li>
+					<li>1 Tera Byte（TB）= 1024 GB</li>
+					<li>1 Peta Byte（PB） = 1024 TB</li>
+					<li>1 Exa Byte（EB） = 1024 PB</li>
+				</ul>
+				</p>
+			</aside>
+		</fieldset>
+	</div>
+	<script>
+		/**
+		 *工具方法,为指定元素绑定事件
+		 *@param {element} e 目标元素 
+		 *@param {string} evtType 事件类型
+		 *@param {function} handler 事件处理方法
+		 *
+		 */
+		var addListener = function(e, evtType, handler) {
+			if (e.attachEvent) {
+				e.attachEvent("on" + evtType, function() {
+					handler.call(e, event);
+				})
+			} else {
+				e.addEventListener(evtType, function(evt) {
+					handler.call(e, evt);
+				});
+			}
+		}
+		/**
+		 *输入框按钮事件处理方法
+		 *@param {event} evt 事件对象
+		 *
+		 */
+		var inputClickHandler = function(evt) {
+			//如果某个输入框为空,则清空其他输入框
+			if (this.value.length == 0) {
+				for (var i = inputs.length; i-->0;) {
+					inputs[i].value = "";
+				}
+				return;
+			}
+			//转换为数字,进行计算
+			var value = parseFloat(this.value);
+			if (isNaN(value)) {
+				//如果格式错误,直接结束
+				return;
+			}
+			//获取系数,并转换为byte
+			var mod = this.getAttribute("modulus");
+			value = value * Math.pow(1024, mod);
+			//改变其他输入框
+			for (var i = inputs.length; i-->0;) {
+				if (inputs[i] !== this) {
+					mod = inputs[i].getAttribute("modulus");
+					inputs[i].value = value / Math.pow(1024, mod);
+				}
+			}
+		}
+		//给所有input添加按键事件
+		var inputs = document.getElementsByTagName("input");
+		for (var i = inputs.length; i-->0;) {
+			addListener(inputs[i], "keyup", inputClickHandler);
+		}
+	</script>
+</body>
+</html>
+

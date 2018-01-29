@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<style>
+table {
+	border-spacing: 0;
+}
+
+/*----------reset-----------*/
+.box {
+	width: 540px;
+	margin: 0 auto;
+}
+
+.head {
+	height: 60px;
+	background-image: url(images/tit.png);
+	background-repeat: no-repeat;
+}
+
+.body {
+	border-left: 1px solid #90BACD;
+	border-right: 1px solid #90BACD;
+	border-bottom: 1px solid #90BACD;
+}
+
+.head .title {
+	font-size: 16px;
+	font-weight: bold;
+	color: #005EAC;
+	text-indent: 2em;
+}
+
+.body .title {
+	font-size: 13px;
+	font-weight: normal;
+	text-align: center;
+	margin-top: 1em;
+}
+
+.body-box {
+	border: 1px solid #90BACD;
+	margin: 1em;
+}
+
+.body-table {
+	width: 100%;
+}
+
+.body-left {
+	padding: 1em;
+	vertical-align: top;
+	text-align: center;
+}
+
+.body-right {
+	padding: 1em;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.fields {
+	text-align: left;
+}
+
+input.text {
+	font-size: 12px;
+	border: 1px solid #90BACD;
+	background-color: transparent;
+	height: 30px;
+	width: 100%;
+	line-height: 30px;
+	margin: 0.5em 0;
+	
+}
+
+input.tip {
+	font-size: 12px;
+	font-weight: normal;
+	color: gray;
+	border: 1px solid #90BACD;
+	background-color: transparent;
+	height: 30px;
+	width: 100%;
+	line-height: 30px;
+	margin: 0.5em 0;
+	text-indent: 1em;
+}
+
+.btns {
+	margin-top: 1.5em;
+}
+.space {
+	margin: 0 1em;
+}
+</style>
+		<script type="text/javascript">
+	var reset = function() {
+		var yearInput = document.getElementById("yearInput");
+		yearInput.value = "";
+	}
+
+	var showPet = function() {
+		var yearInput = document.getElementById("yearInput");
+		var year = parseInt(yearInput.value);
+		if (isNaN(year)) {
+			yearInput.value = "请输入出生年份";
+			yearInput.className = "tip";
+			return;
+		}
+		var petImage = document.getElementById("petImage");
+		petImage.src = "images/" + (year % 12) + ".png";
+	}
+	var inputClick = function(yearInput) {
+		yearInput.value = "";
+		yearInput.className = "text";
+	}
+</script>
+	</head>
+	<body>
+		<table class="box">
+			<tr>
+				<td class="head">
+					<h1 class="title">
+						生肖查询
+					</h1>
+				</td>
+			</tr>
+			<tr>
+				<td class="body">
+					<div class="body-box">
+						<table class="body-table">
+							<tr>
+								<td colspan="2">
+									<h5 class="title">
+										您可以很轻松地知道任何年份出生的人的属相
+									</h5>
+								</td>
+							</tr>
+							<tr>
+								<td class="body-left">
+									<input maxlength="4" onclick="inputClick(this)"
+										autocomplete="off" class="tip" value="请输入出生年份,如:2014"
+										id="yearInput" />
+									<div class="btns">
+										<input onclick="showPet()" type="image"
+											src="images/submit.gif">
+										<span class="space"></span>
+										<input onclick="reset()" type="image" src="images/reset.gif">
+									</div>
+								</td>
+								<td class="body-right">
+									<img id="petImage" alt="" src="images/10.png">
+								</td>
+							</tr>
+
+						</table>
+
+					</div>
+
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="Author" content="YIZHUOYAN">
+  <title>Document</title>
+  <style>
+	body{
+		overflow:hidden;
+	}
+	.walker{
+		margin:auto;
+		width:100px;
+		height:174px;
+		background-image:url(img/walker-left.png);
+		background-repeat:no-repeat;
+		position:absolute;
+		left:0;
+
+	}
+  </style>
+ </head>
+ <body>
+	<div class="walker">
+	</div>
+
+	<script>
+		var worldW=document.body.offsetWidth;
+		var walker=document.querySelector(".walker");
+		var frameIndex=0;
+		var speed=10;
+		var left=0;
+		var paint=function(){
+			if(frameIndex<=-1100){
+				frameIndex=0;
+			}
+			if(walker.offsetLeft+speed>=worldW){
+				left=-100;
+			}
+			walker.style.backgroundPosition=frameIndex+"px 0";
+			walker.style.left=left+"px";
+
+			frameIndex-=100;
+			left+=speed;
+		}
+	</script>
+	<script>
+			var FPS=1000/30;
+			//动画绘制
+			var run=function(){
+				var begin=new Date().getTime();
+				paint();
+				begin=new Date().getTime()-begin;
+				if(begin<FPS){
+					setTimeout(run,FPS-begin);
+				}else{
+					setTimeout(run,0);
+				}
+			}
+			run();
+	</script>
+ </body>
+
+
+</html>

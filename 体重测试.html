@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>离线web轻应用-体重测试</title>
+<style type="text/css">
+button {
+	background-color: #2D97DE;
+	border: 1px solid #2381C0;
+	cursor: pointer;
+	color: white;
+	width: 100px;
+	height: 2.5em;
+}
+
+button:HOVER {
+	background-color: #2088d0;
+}
+
+.appBox {
+	padding: 1em;
+	width: 520px;
+	background-color: #ffffcc;
+}
+
+.appBox legend {
+	font-size: 120%;
+	font-weight: bold;
+}
+.appBox fieldset{
+	padding: 1em;
+}
+
+table.app {
+	width: 100%;
+	border-collapse: collapse;
+}
+table.app input{
+	padding: 5px 0;
+	text-indent: .5em;
+}
+
+table.app td {
+	border: 1px solid #C5D5C5;
+	padding: 5px;
+}
+
+table.help {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+table.help td {
+	text-align: center;
+	border: 1px solid #C5D5C5;
+}
+
+table.help th {
+	border: 1px solid #C5D5C5;
+	background-color: #F5F5F5;
+	font-weight: normal;
+}
+
+.formLabel {
+	text-align: right;
+	background-color: #F5F5F5;
+	padding-left: 4em;
+}
+
+.formEL {
+	text-align: left;
+}
+
+.outputEL {
+	color: #FF4646;
+	font-weight: bold;
+	text-align: left;
+}
+
+.formButtons {
+	text-align: center;
+}
+
+ 
+
+ 
+
+.box-help {
+	margin: 1em 0;
+}
+
+.box-help h4 {
+	margin: 0;
+}
+
+.box-help p{
+	text-indent: 2em;
+}
+.message{
+	display: block;
+	text-align: center;
+	font-size: 90%;
+	color: red;
+	font-style: normal;
+}
+</style>
+
+</head>
+<body>
+	<div class="appBox">
+		<fieldset>
+			<legend>体重测试</legend>
+			<em id="messageEL" class="message">&nbsp;</em>
+			<table class="app">
+				<tr>
+					<td class="formLabel">身高:</td>
+					<td class="formEL">
+					
+					<input id="heightEL" type="number" maxlength="3" value="170" placeholder="请输入身高">厘米（CM）</td>
+				</tr>
+				<tr>
+					<td class="formLabel">体重:</td>
+					<td class="formEL" >
+					
+					<input id="weightEL" maxlength="3" type="number" placeholder="1千克/公斤=2斤">千克/公斤（KG）</td>
+				</tr>
+				<tr>
+					<td colspan="2" class="formButtons">
+						<button onclick="doWork()">开始体重测试</button>
+					</td>
+				</tr>
+				<tr>
+					<td class="formLabel">BMI指数:</td>
+					<td id="BMIEL" class="outputEL"></td>
+				</tr>
+				<tr>
+					<td class="formLabel">系统评价:</td>
+					<td id="evaluateEL" class="outputEL"></td>
+				</tr>
+			</table>
+
+			<aside class="box-help">
+				<h4>说明：</h4>
+				<table class="help">
+					<caption>成年人身体质量指数</caption>
+					<tr>
+						<th>轻体重BMI</th>
+						<th>健康体重BMI</th>
+						<th>超重BMI</th>
+						<th>肥胖BMI</th>
+					</tr>
+					<tr>
+						<td>BMI&lt;18.5</td>
+						<td>18.5≤BMI&lt;24</td>
+						<td>24≤BMI&lt;28</td>
+						<td>28≤BMI</td>
+					</tr>
+		</table>
+
+				<p>
+				BMI指数（身体质量指数，简称体质指数又称体重指数，英文为Body Mass
+					Index，简称BMI），是用体重公斤数除以身高米数平方得出的数字，是目前国际上常用的衡量人体胖瘦程度以及是否健康的一个标准。
+					
+				</p>
+				<p>
+				BMI不适用以下人群:
+				<ol>
+					<li>未满18岁</li>
+					<li>运动员</li>
+					<li>正在做重量训练</li>
+					<li>怀孕或哺乳中</li>
+					<li>身体虚弱或久坐不动的老人</li>
+				</ol>
+				</p>
+				<p>
+				如果你认为BMI算出来的结果不正确，请带着结果与你的医师讨论，并要求做体脂肪测试。
+				</p>
+			</aside>
+		</fieldset>
+	</div>
+	<script>
+		/**
+		*点击按钮执行
+		*/
+		var doWork=function(){
+			try{
+				//清空错误消息
+				handleError();
+				//获取身高并验证
+				var heightEL=document.getElementById("heightEL");
+				var height=heightEL.value;
+				if(height.length==0){
+					heightEL.focus();
+					throw new Error("请输入身高");
+				}
+				if(!/^\d+$/.test(height)){
+					heightEL.focus();
+					heightEL.value="";
+					throw new Error("身高仅能输入数字");
+				}
+				height=Number(height);
+				//获取体重并验证
+				var weigthEL=document.getElementById("weightEL");
+				var weight=weigthEL.value;
+				if(weight.length===0){
+					weigthEL.focus();
+					throw new Error("请输入体重");
+				}
+				if(!/^\d+$/.test(weight)){
+					weigthEL.focus();
+					weigthEL.value="";
+					throw new Error("体重仅能输入数字");
+				}
+				weight=Number(weight);
+				
+				//调用计算BMI方法
+				var bmi=countBMI(weight,height);
+				//输出
+				document.getElementById("BMIEL").innerHTML=bmi;
+				//获取系统评价并输出
+				document.getElementById("evaluateEL").innerHTML=evaluateBMI(bmi);
+				
+			}catch(e){
+				handleError(e);
+			}
+			
+		}
+		/**
+		*输入错误处理方法
+		*@param {Error} 错误对象
+		*/
+		var handleError=function(e){
+			var messageEL=document.getElementById("messageEL");
+			if(e){
+				messageEL.innerHTML=e.message;
+			}else{
+				messageEL.innerHTML="&nbsp;";
+			}
+		}
+		/**
+		*计算bmi 
+		*体质指数（BMI）=体重（kg）÷身高^2（m）
+		*@param {Number} weight 体重,单位千克
+		*@param {Number} height 身高,单位里面
+		*@return {Number} bmi质数
+		**/
+		var countBMI=function(weight,height){
+			//转换为米
+			height=Number(height)/100;
+			//计算bmi
+			var bmi=Number(weight)/height/height;
+			//保留2位小数
+			return Math.round(bmi*100)/100;
+		}
+		/**
+		*bmi评价
+		*@param {Number} bmi bmi质数
+		*@return {String} 评价
+		**/
+		var evaluateBMI=function(bmi){
+			var message=evaluateBMI.message;
+			if(!message){
+				evaluateBMI.message=message={
+						"非法":"你在乱干啥呢!耶,我刀呢？",
+						"重度偏瘦":"耶,怎么是个骨架",
+						"偏瘦":"你就不能多吃点吗？",
+						"正常":"身材不错哦,注意保持",
+						"偏胖":"有点贪吃少运动哦",
+						"肥胖":"你这肉几块一斤？",
+						"重度肥胖":"你能看到你鞋吗？",
+						"极重度肥胖":"那个谁,你一个人拦着公路干嘛!滴 滴 滴"
+				};
+			}
+			if(bmi<10){
+				return message["非法"];
+			}
+			if(10<bmi&&bmi<17){//重度偏瘦
+				return message["重度偏瘦"];
+			}
+			if(17<bmi&&bmi<18.5){//偏瘦
+				return message["偏瘦"];
+			}
+			if(18.5<bmi&&bmi<23.9){//正常-23.9
+				return message["正常"];	
+			}
+			if(24<bmi&&bmi<27.9){//24～27.9偏胖
+				return message["偏胖"];	
+			}
+			if(30<bmi&&bmi<34.9){//30.0～34.9
+				return message["肥胖"];			
+			}
+			if(35<bmi&&bmi<39.9){//35.0～39.9重度肥胖
+				return message["重度肥胖"];	
+			}
+			//≥40.0极重度肥胖
+			if(40<=bmi&&bmi<50){
+				return message["极重度肥胖"];
+			}
+				return message["非法"];		
+		}
+	</script>
+</body>
+</html>
+

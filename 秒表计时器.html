@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>离线web轻应用-秒表计时器</title>
+<style type="text/css">
+button {
+	background-color: #2D97DE;
+	border: 1px solid #2381C0;
+	cursor: pointer;
+	color: white;
+	width: 100px;
+	height: 3em;
+}
+
+button:HOVER {
+	background-color: #2088d0;
+}
+
+.appBox {
+	padding: 2em;
+	width: 520px;
+	background-color: #ffffcc;
+}
+
+.appBox legend {
+	font-size: 120%;
+	font-weight: bold;
+}
+
+.box-input {
+	text-align: center;
+}
+
+.box-output {
+	min-height: 300px;
+}
+
+.box-help h4 {
+	margin: 0;
+}
+
+.box-help ul {
+	margin: 0;
+}
+
+.box-output ol {
+	list-style-position: inside;
+	margin-left: 3em;
+}
+</style>
+
+</head>
+<body>
+	<div class="appBox">
+	<fieldset>
+		<legend>秒表计时器</legend>
+		<div class="box-input">
+			<button id="startBtn" onclick="stopwatch.start(this)">开始</button>
+			<button id="splitBtn" onclick="stopwatch.split(this)">分割</button>
+			<label id="timeRunShow"> 00:00:00.000 </label>
+			<button id="pauseBtn" onclick="stopwatch.pauseOrContinue(this)">暂停</button>
+		</div>
+		<div class="box-output">
+			<ol id="splitOutput">注：分割时间将会显示在这里
+			</ol>
+		</div>
+		<aside class="box-help">
+			<hr>
+			<h4>说明：</h4>
+			<ul>
+				<li>点击"开始"按钮开始计时</li>
+				<li>在计时过程中,你可以通过"暂停"按钮暂定当前计时</li>
+				<li>暂定计时过程中,你可以点击"继续"按钮恢复刚才的计时</li>
+				<li>在计时过程中,你可以点击"分割"按钮进行计时分割</li>
+				<li>在任意时刻中,你都可以点击"重新开始"按钮进行重新计时</li>
+			</ul>
+		</aside>
+	</fieldset>
+	</div>
+	<script>
+		var stopwatch = (function(showElementId) {
+			var STATUS_STOP = 0, STATUS_RUN = 1, STATUS_PAUSE = 2;
+			var stopwatch = {
+				showElement : document.getElementById(showElementId),
+				status : STATUS_STOP,
+				beginTime : null,
+				passedTime : 0,
+				lastSplitTime : 0,
+				run : function() {
+					(function run0(stopwatch) {
+						var passedTime = new Date().getTime()
+								- stopwatch.beginTime
+						var hour = Math.floor(passedTime / 3600000);
+						var minute = Math.floor(passedTime / 60000 % 60);
+						var second = Math.floor(passedTime / 1000 % 60);
+						var msecond = passedTime % 1000;
+						hour = hour < 10 ? "0" + hour : hour;
+						minute = minute < 10 ? "0" + minute : minute;
+						second = second < 10 ? "0" + second : second;
+						msecond = (msecond < 100 ? (msecond < 10 ? "00"
+								+ msecond : "0" + msecond) : msecond);
+						stopwatch.showElement.innerHTML = hour + ":" + minute
+								+ ":" + second + "." + msecond;
+						stopwatch.passedTime = passedTime;
+						if (stopwatch.status === STATUS_RUN) {
+							setTimeout(run0, 0, stopwatch);
+						}
+					})(this);
+				},
+				start : function(btn) {
+					this.beginTime = new Date().getTime();
+					this.lastSplitTime = 0;
+					if (this.status !== STATUS_RUN) {
+						this.status = STATUS_RUN;
+						this.run();
+					}
+					btn.innerHTML = "重新开始";
+					document.getElementById("pauseBtn").innerHTML = "暂停";
+					document.getElementById("splitOutput").innerHTML = "&nbsp;";
+				},
+				pauseOrContinue : function(btn) {
+					try {
+						btn.disabled = true;
+						if (this.status === STATUS_RUN) {//pause
+							this.status = STATUS_PAUSE;
+							btn.innerHTML = "继续";
+						} else if (this.status === STATUS_PAUSE) {//continue
+							btn.innerHTML = "暂停";
+							this.status = STATUS_RUN;
+							this.beginTime = new Date().getTime()
+									- this.passedTime;
+							this.run();
+						}
+					} finally {
+						btn.disabled = false;
+					}
+				},
+				split : function(btn) {
+					if (this.status === STATUS_RUN) {
+						var splitOutputEl = document
+								.getElementById("splitOutput");
+						var li = document.createElement("li");
+						var liText = this.showElement.innerHTML;
+						liText = liText + "--"
+								+ (this.passedTime - this.lastSplitTime);
+						var splitTimeText = document.createTextNode(liText);
+						li.appendChild(splitTimeText);
+						splitOutputEl.appendChild(li);
+						this.lastSplitTime = this.passedTime;
+					}
+				}
+			}
+			return stopwatch;
+		})("timeRunShow");
+	</script>
+</body>
+</html>
+

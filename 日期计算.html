@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>离线web轻应用-日期计算</title>
+<style type="text/css">
+.appBox {
+	padding: 2em;
+	width: 600px;
+	background-color: #F7F8F8;
+}
+
+.appBox fieldset {
+	padding: 1em;
+}
+
+.appBox legend {
+	font-size: 120%;
+	font-weight: bold;
+}
+
+section h2 {
+	color: #EFA475;
+	font-weight: normal;
+	font-size: 100%;
+}
+
+.input {
+	background-color: #F9F9F9;
+	width: 150px;
+	height: 3em;
+	border: 1px solid #DEDEfE;
+	text-indent: .5em;
+}
+
+.input-small {
+	width: 80px;
+}
+
+label {
+	font-size: 80%;
+}
+
+.output {
+	margin-top: 1em;
+}
+
+.output  output {
+	width: 100%;
+	height: 3em;
+	display:inline-block;
+	line-height:3em;
+	font-size: 80%;
+	border: 1px solid #DEDEDE;
+	background-color: #FBFBE5;
+	text-indent: .5em;
+}
+
+button {
+	background-color: #2D97DE;
+	border: 1px solid #2381C0;
+	cursor: pointer;
+	color: white;
+	width: 100px;
+	height: 3em;
+	float: right;
+}
+
+button:HOVER {
+	background-color: #2088d0;
+}
+.errorMessage{
+	color: gray;
+}
+em{
+	font-style:normal;
+	font-weight: bold;
+}
+</style>
+
+</head>
+<body>
+	<div class="appBox">
+		<fieldset>
+			<legend> 日期计算 </legend>
+			<section>
+				<h2>农历年计算</h2>
+				<p>
+					<label> <input id="yearInput" type="text" maxlength="4"
+						placeholder="请输入年份,如2008" class="input"> 年
+					</label>
+					<button onclick="convert2ChineseCalendar(this)">计算</button>
+				</p>
+				<p class="output">
+					<output id="chineseCalendarOutput">&nbsp;</output>
+				</p>
+				<script>
+					var convert2ChineseCalendar = function(btn) {
+						try {
+							btn.disabled = true;
+							var output = document
+									.getElementById("chineseCalendarOutput");
+							var yearInput = document
+									.getElementById("yearInput");
+							if (!(/^[1-9]\d{3}\s*$/.test(yearInput.value))) {
+								throw new Error("年份格式不正确,请重新输入");
+							}
+							var year = parseInt(yearInput.value, 10);
+							//计算天干地支
+							var TIAN_GAN = "庚辛壬癸甲乙丙丁戊己".split("");
+							var DI_ZHI = "申酉戌亥子丑寅卯辰巳午未".split("");
+							var ANIMAL = "猴鸡狗猪鼠牛虎兔龙蛇马羊".split("");
+							var result = [];
+							//天干
+							result.push("<em>")
+							result.push(TIAN_GAN[year % 10]);
+							result.push(DI_ZHI[year % 12]);
+							result.push(ANIMAL[year % 12]);
+							result.push("</em>年");
+							output.innerHTML = result.join("");
+						} catch (e) {
+							output.innerHTML = "<span class='errorMessage'>"+e.message+"</span>";
+						} finally {
+							btn.disabled = false;
+						}
+
+					}
+				</script>
+			</section>
+
+
+
+			<section>
+				<h2>日期间隔天数</h2>
+				<p>
+					<label> 起始   <input id="beginDateInput" class="input"
+						type="date">
+					</label>
+					&nbsp;&nbsp;
+					<label> 结束   <input id="endDateInput" class="input"
+						type="date">
+					</label>
+					<button onclick="countIntervalDays(this)">计算</button>
+				</p>
+				<p class="output">
+					<output id="intervalDaysOutput">&nbsp;
+					</output>
+				</p>
+				<script>
+					//默认为当前值
+					(function() {
+						var beginDateInput = document
+						.getElementById("beginDateInput");
+						var endDateInput = document
+						.getElementById("endDateInput");
+						var now = new Date();
+						var month = now.getMonth() + 1;
+						var days = now.getDate();
+						var nowString = [ now.getFullYear(),
+								month > 10 ? month : "0" + month,
+								days > 10 ? days : "0" + days ].join("-");
+						beginDateInput.value = nowString;
+						endDateInput.value = nowString;
+						
+					}());
+					var parseDate=function(dateString){
+						var dateArrays=dateString.split("-");
+						var date=new Date(parseInt(dateArrays[0],10),
+										  parseInt(dateArrays[1]-1,10),
+										  parseInt(dateArrays[2],10));
+						return date;
+					};
+					var countIntervalDays = function(btn) {
+						try {
+							btn.disabled = true;
+							var output = document
+									.getElementById("intervalDaysOutput");
+							var beginDateInput = document
+							.getElementById("beginDateInput");
+							var endDateInput = document
+							.getElementById("endDateInput");
+							var validateReg=/^\d{4}-\d{2}-\d{2}$/;
+							if (!(validateReg.test(beginDateInput.value))) {
+								throw new Error("起始日期格式错误,应为:2008-01-01,请重新输入");
+							}
+							if (!(validateReg.test(endDateInput.value))) {
+								throw new Error("结束日期格式错误,应为:2008-01-01,请重新输入");
+							}
+							var beginDate=parseDate(beginDateInput.value);
+							var endDate=parseDate(endDateInput.value);
+							
+							var intervalDays=Math.abs(beginDate.getTime()-endDate.getTime());
+							intervalDays=Math.round(intervalDays/(24*60*60*1000));								
+							output.innerHTML = " 两个日期间隔 "+intervalDays+" 天";
+						} catch (e) {
+							output.innerHTML = "<span class='errorMessage'>"+e.message+"</span>";
+						} finally {
+							btn.disabled = false;
+						}
+					}
+				</script>
+			</section>
+
+			<section>
+				<h2>日期加减计算</h2>
+				<p>
+					<label>从 
+					<input id="sourceDateInput" class="input" type="date">
+					</label> 
+					<label>
+					<input name="operationType" value="+"
+						type="radio" checked>加上</label> 
+					<label><input name="operationType" value="-" type="radio">减去</label>
+					<label><input id="operationDaysInput" class="input input-small" value="10"
+						type="number">天</label>
+					<button onclick="plusMinusDate(this)">计算</button>
+				</p>
+				<p class="output">
+					<output id="plusMinusDateOutput">&nbsp;
+					</output>
+				</p>
+				<script>
+					//初始化为当前时间
+					(function(){
+						var sourceDateInput = document
+						.getElementById("sourceDateInput");
+						var now = new Date();
+						var month = now.getMonth() + 1;
+						var days = now.getDate();
+						var nowString = [ now.getFullYear(),
+								month > 10 ? month : "0" + month,
+								days > 10 ? days : "0" + days ].join("-");
+						sourceDateInput.value = nowString;
+					})();
+					
+					var plusMinusDate=function(btn){
+						try {
+							btn.disabled = true;
+							var output = document
+									.getElementById("plusMinusDateOutput");
+							//get source date
+							var sourceDateInput = document
+							.getElementById("sourceDateInput");
+							if (!(/^\d{4}-\d{2}-\d{2}$/.test(sourceDateInput.value))) {
+								throw new Error("日期格式错误,应为:2008-01-01,请重新输入");
+							}
+							
+							//get operationType
+							var operationTypeRadios=document.getElementsByName("operationType");
+							var operationType;
+							for(var i=0;i<operationTypeRadios.length;i++){
+								if(operationTypeRadios[i].checked){
+									operationType=operationTypeRadios[i].value;
+									break;
+								}
+							}
+							//get 加减天数
+							var operationDaysInput=document.getElementById("operationDaysInput");
+							if(!(/^\d+$/.test(operationDaysInput.value))){
+								throw new Error("操作天数格式不正确,请输入整数");
+							}
+							var sourceDate=parseDate(sourceDateInput.value);
+							var operationDays=parseInt(operationDaysInput.value, 10);
+							if("-"===operationType){
+								operationDays=-operationDays;
+							}
+							sourceDate.setDate(sourceDate.getDate()+operationDays);
+							
+							var month = sourceDate.getMonth() + 1;
+							var days = sourceDate.getDate();
+							var dateString = [ sourceDate.getFullYear(),
+									month > 10 ? month : "0" + month,
+									days > 10 ? days : "0" + days ].join("-");
+							output.innerHTML="日期为 <em>"+dateString+"</em>";
+							
+						} catch (e) {
+							output.innerHTML = "<span class='errorMessage'>"+e.message+"</span>";
+						} finally {
+							btn.disabled = false;
+						}
+						
+					}
+					
+				</script>
+			</section>
+		</fieldset>
+	</div>
+</body>
+</html>
+

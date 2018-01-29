@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>离线web轻应用-常用进制转换器</title>
+<style type="text/css">
+.appBox {
+	padding: 2em;
+	width: 700px;
+	background-color: #ffffcc;
+}
+
+.appBox legend {
+	font-size: 120%;
+	font-weight: bold;
+}
+
+dt {
+	font-weight: bold;
+}
+
+dd {
+	margin: 0;
+}
+
+input {
+	background-color: #F9F9F9;
+	width: 100%;
+	height: 30px;
+	border: 1px solid #DEDEfE;
+	margin-right: 1em;
+	text-indent: 5px;
+}
+
+.box-help p {
+	text-indent: 2em;
+}
+
+
+</style>
+
+</head>
+<body>
+	<div class="appBox">
+		<fieldset>
+			<legend>常用进制转换器</legend>
+			<div>
+				<dl>
+					<dt>10进制(0123456789):</dt>
+					<dd>
+						<input modulus="10">
+					</dd>
+				</dl>
+				<dl>
+					<dt>2进制(01):</dt>
+					<dd>
+						<input modulus="2">
+					</dd>
+				</dl>
+				<dl>
+					<dt>8进制(01234567):</dt>
+					<dd>
+						<input modulus="8">
+					</dd>
+				</dl>
+				<dl>
+					<dt>16进制(0123456789ABCDEF):</dt>
+					<dd>
+						<input modulus="16">
+					</dd>
+				</dl>	
+			</div>
+			<aside class="box-help">
+				<h4>使用：</h4>
+				<p>在任意输入框中输入数字,其他输入框会自动进行实时换算显示结果.</p>
+				
+			</aside>
+			<aside class="box-help">
+				<h4>说明：</h4>
+				<ul>
+					<li>
+					&nbsp;2进制：仅使用01两个字符表示
+					</li>
+					<li>
+					&nbsp;8进制：仅使用01234567八个字符表示
+					</li>
+					<li>
+					10进制：仅使用0123456789十个字符表示
+					</li>
+					<li>
+					16进制：仅使用0123456789ABCDEF十六个字符表示,字母也可以小写
+					</li>
+				</ul>
+				
+			</aside>
+		</fieldset>
+	</div>
+	<script>
+		/**
+		 *工具方法,为指定元素绑定事件
+		 *@param {element} e 目标元素 
+		 *@param {string} evtType 事件类型
+		 *@param {function} handler 事件处理方法
+		 *
+		 */
+		var addListener = function(e, evtType, handler) {
+			if (e.attachEvent) {
+				e.attachEvent("on" + evtType, function() {
+					handler.call(e, event);
+				})
+			} else {
+				e.addEventListener(evtType, function(evt) {
+					handler.call(e, evt);
+				});
+			}
+		}
+		/**
+		 *输入框按钮事件处理方法
+		 *@param {event} evt 事件对象
+		 *
+		 */
+		var inputClickHandler = function(evt) {
+			//如果某个输入框为空,则清空其他输入框
+			if (this.value.length == 0) {
+				for (var i = inputs.length; i-->0;) {
+					inputs[i].value = "";
+				}
+				return;
+			}
+			//获取系数,并转换为byte
+			var mod = parseInt(this.getAttribute("modulus"));
+			//转换为10进制
+			var value = parseInt(this.value, mod);
+			if (isNaN(value)) {
+				//如果格式错误,直接结束
+				return;
+			}
+
+			//改变其他输入框
+			for (var i = inputs.length; i-->0;) {
+				if (inputs[i] !== this) {
+					mod = parseInt(inputs[i].getAttribute("modulus"));
+					if(mod===16){
+						inputs[i].value = value.toString(mod).toUpperCase();
+					}else{
+						inputs[i].value = value.toString(mod);
+					}
+				}
+			}
+		}
+		//给所有input添加按键事件
+		var inputs = document.getElementsByTagName("input");
+		for (var i = inputs.length; i-->0;) {
+			addListener(inputs[i], "keyup", inputClickHandler);
+		}
+	</script>
+</body>
+</html>
+
