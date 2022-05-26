@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+
+    function nextInt(a, b) {
+        return Math.floor(Math.random() * Math.abs(a - b)) + Math.min(a, b);
+    }
+
+    function randomArray(length, minValue, maxValue) {
+        let result = [];
+        while (length--) {
+            result.push(nextInt(minValue, maxValue))
+        }
+        return result;
+    }
+
+    class World {
+        constructor(cvs, w, h) {
+            this.canvas = cvs;
+            this.cellW=w;
+            this.cellH=h;
+            this.g = cvs.getContext("2d");
+            this.cells = [];
+            this.rows=0;
+            this.cols=0;
+            this.lifeCellArray = [];
+            this._init();
+            this.lastTime=0;
+        }
+
+        _init() {
+
+            this.rows= Math.floor(document.body.offsetWidth / this.cellW);
+            this.cols = Math.floor(document.body.offsetHeight / this.cellH);
+            this.maxW=this.canvas.width = this.rows*this.cellW;
+            this.maxH=this.canvas.height =this.cols*this.cellH;
+
+            this.lifeCellArray = randomArray(10, 1, this.rows * this.cols + 1);
+
+            let no = 1;
+            let cells = new Array(this.rows);
+            for (let i = 0; i < this.rows; i++) {
+                let rowCells = new Array(this.cols);
+                cells[i] = rowCells;
+                for (let j = 0; j < this.cols; j++) {
+                    no++;
+                    let cell = new Cell(this, i, j, this.cellW, this.cellH);
+                    if (this.lifeCellArray.indexOf(no) >= 0) {
+                        cell.color = true;
+                    }
+                    rowCells[j] = cell;
+                }
+            }
+
+
+            this.cells = cells;
+
+            console.log(cells)
+        }
+
+        paint() {
+            if(Date.now()-this.lastTime<50){
+                //return;
+            }
+
+            let g = this.g;
+            let cells = this.cells;
+            let cell;
+            g.fillStyle = "black";
+            g.fillRect(0, 0, this.maxW, this.maxH);
+            for (let i = cells.length; i-- > 0;) {
+                for (let j = cells[i].length; j-- > 0;) {
+                    cell = cells[i][j];
+                    cell.paint(g);
+                }
+            }
+            this.lastTime=Date.now();
+        }
+    }
+
+
+    class Cell {
+        constructor(world, i, j, w, h) {
+            this.world = world;
+            this.w = w;
+            this.h = h;
+            this.x = (i) * w;
+            this.y = (j) * h;
+            this.i = i;
+            this.j = j;
+            this.color = 0;
+            this.neighbour = [];
+            this.whiteCount=0;
+
+        }
+        paint(g) {
+
+            this.determineColor();
+            g.fillStyle = this.color?"white":"black";
+            g.fillRect(this.x, this.y, this.w, this.h);
+
+            g.fillStyle ="blue";
+            g.textBaseline = "top";
+           // g.fillText(String(this.whiteCount),this.x+this.w/2,this.y+this.h/2);
+        }
+        //明确邻居
+        determineNeighbour(){
+            let nb=[];
+            let cells=this.world.cells;
+            let maxCells=cells.length;
+            let maxRows=cells[0].length;
+            let i=this.i;
+            let j=this.j;
+            //left-top
+            if(i-1>0&&j-1>0){
+                nb.push(cells[i-1][j-1]);
+            }
+            //top
+            if(j-1>0){
+                nb.push(cells[i][j-1]);
+            }
+            //right-top
+            if(i+1<maxCells&&j-1>0){
+                nb.push(cells[i+1][j-1]);
+            }
+            //left
+            if(i-1>0){
+                nb.push(cells[i-1][j]);
+            }
+            //right
+            if(i+1<maxCells){
+                nb.push(cells[i+1][j]);
+            }
+            //left-bottom
+            if(i-1>0&&j+1<maxRows){
+                nb.push(cells[i-1][j+1]);
+            }
+            //bottom
+            if(j+1<maxRows){
+                nb.push(cells[i][j+1]);
+            }
+            //right-bottom
+            if(i+1<maxCells&&j+1<maxRows){
+                nb.push(cells[i+1][j+1]);
+            }
+            this.neighbour=nb;
+        }
+        determineColor(){
+            if(this.neighbour.length===0){
+                this.determineNeighbour();
+                return;
+            }
+            let nb=this.neighbour;
+            let whiteCount=0;
+            for (let i = nb.length; i-->0 ;) {
+                let one=nb[i];
+                if(one.color){
+                    whiteCount++;
+                }
+            }
+            this.whiteCount=whiteCount;
+
+            if(whiteCount<4){
+                this.color=true;
+            }else if(whiteCount===4){
+                this.color=!this.color;
+            }else if(whiteCount>4){
+                this.color=false;
+            }
+        }
+    }
+
+    let world = new World(document.getElementById("canvas"), 5, 5);
+
+
+    function  nextFrame(){
+
+        world.paint();
+        requestAnimationFrame(nextFrame);
+    }
+
+    window.onload = function () {
+        nextFrame();
+    }
+
+</script>
+</body>
+</html>
